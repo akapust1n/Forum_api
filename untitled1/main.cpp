@@ -2,36 +2,10 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <BdWrapper.h>
-#include "DB.h"
+#include "Router.h"
 
 using namespace Wt;
 
-class RestGetHello : public Wt::WResource {
-public:
-    virtual ~RestGetHello()
-    {
-        beingDeleted();
-    }
-
-protected:
-    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        response.out() << "Hello Rest!\n";
-    }
-};
-class RestGetBye : public Wt::WResource {
-public:
-    virtual ~RestGetBye()
-    {
-        beingDeleted();
-    }
-
-protected:
-    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        response.out() << "Bye Rest!\n";
-    }
-};
 
 int main(int argc, char** argv)
 {
@@ -40,14 +14,12 @@ int main(int argc, char** argv)
         server.setServerConfiguration(argc, argv); //создаем сервер
         BdWrapper connection;
         connection.createConnection(); //НУЖНО ПЕРЕДЕЛАТЬ В ПУЛ КОННЕКТОВ
+                                  //роутер
+        Router router;
+        router.route(server);
 
-        RestGetHello getHello;  //роутер
-        RestGetBye getBye;
-        DbClear dbClear;
-
-        server.addResource(&getHello, "/hello");
-        server.addResource(&getBye, "/bye");
-        server.addResource(&dbClear,"/db/api/clear/");
+        //DbClear dbClear;
+        //server.addResource(&dbClear,"/db/api/clear/");
 
         if (server.start()) {
             WServer::waitForShutdown();
