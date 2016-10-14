@@ -9,12 +9,11 @@ public:
     bool createConnection() {
       db = QSqlDatabase::addDatabase("QMYSQL", "apidb1");
       db.setHostName("localhost");
-      db.setDatabaseName("apidb");
+      db.setDatabaseName("forum");
       db.setUserName("root");
       db.setPassword("1111");
       bool ok = db.open();
-      QSqlQuery query(db);
-      query.exec("SHOW DATABASES;");
+
       std::cout<<ok<<std::endl;
       return  ok;
     }
@@ -27,6 +26,7 @@ public:
 
 private:
     QSqlDatabase db;
+
 };
 
 #endif // CONNECTION_H

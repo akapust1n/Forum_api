@@ -1,6 +1,6 @@
 #ifndef FORUM_H
 #define FORUM_H
-#include "Encoding.h"
+#include "Trash.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -8,6 +8,7 @@
 #include <QSqlQuery>
 #include <QString>
 #include <QStringList>
+#include <QVariant>
 #include <Wt/Http/Response>
 #include <Wt/Json/Object>
 #include <Wt/Json/Parser>
@@ -15,7 +16,7 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include <QVariant>
+#include <istream>
 
 class ForumCreate : public Wt::WResource {
 public:
@@ -27,19 +28,21 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        QString params = "";
+        QString params = LineAnalyze::getRequestBody(request);
+        //  auto temp4 = Wt::Json::parse(request);
+        /*auto temp5 = request.queryString();
         auto temp1 = request.contentType();
         auto temp2 = request.contentLength();
-        //иногда падает с ошибкой почему-то
-        try {
-            std::string line = request.getParameterMap().begin()->first;
-            //auto line2 = request.getCookieValue()
-            std::cout<<"HUI2"<<line<<std::endl;
-            if (line.size() != 0) {
-                params = Encoding::fixUnicode(line);
-            }
-        } catch (...) {
-        };
+        auto temp6 = request.continuation();
+
+        auto temp3 = request.getParameter("name");
+        std::string temp7;
+       // auto temp8 = request.in();
+        while (std::getline(request.in(),temp7));
+          params.fromStdString(temp7);
+         //иногда падает с ошибкой почему-то
+
+    */
 
         QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
 
@@ -52,8 +55,11 @@ protected:
                            "  \"code\": 0, "
                            "  \"response\":{\"id\": 1,\"name\": \"Forum With Sufficiently Large Name\",\"short_name\": \"forumwithsufficientlylargename\",\"user\": \"richard.nixon@example.com\"} "
                            "}";
-        QSqlQuery query;
-        query.prepare("INSERT INTO Forums (name, short_name, user) VALUES (:name, :short_name, :user)");
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.exec("SHOW TABLES;");
+        bool ok2 = query.exec();
+        query.clear();
+        query.prepare("INSERT INTO Forums (name, short_name, user) VALUES (:name, :short_name, :user);");
         query.bindValue(":name", name);
         query.bindValue(":short_name", short_name);
         query.bindValue(":user", user);

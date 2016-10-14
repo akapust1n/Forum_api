@@ -19,6 +19,8 @@ public:
         server.addResource(&forumCreate, "/db/api/forum/create/");
         server.addResource(&userCreate, "/db/api/user/create/");
         server.addResource(&userDetails, "/db/api/user/details/");
+        server.addResource(&userFollow, "/db/api/user/follow/");
+        server.addResource(&userUpdateProfile, "/db/api/user/updateProfile/");
     }
 
 private: // :)
@@ -27,6 +29,8 @@ private: // :)
     UserCreate userCreate;
     UserDetails userDetails;
     ForumCreate forumCreate;
+    UserFollow  userFollow;
+    UserUpdateProfile userUpdateProfile;
 
 };
 

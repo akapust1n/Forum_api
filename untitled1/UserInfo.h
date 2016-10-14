@@ -1,6 +1,6 @@
 #ifndef USERINFO_H
 #define USERINFO_H
-#include "Encoding.h"
+#include "Trash.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,13 +16,117 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include <qvector.h>
 
+class UserInsideInfo {
+private:
+    //возвращает список подписчиков
+    auto _getFollowers(QString folowee)
+    {
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QVector<QString> result; //плохо с точки зрения памяти и скорости
+        query.prepare("SELECT follower FROM Followers WHERE followee=:followee;");
+        query.bindValue(":followee", folowee);
+        bool ok = query.exec();
 
-//TODO
-class getUserInfo
-{
+        while (query.next()) {
+            result.append(query.value(0).toString());
+        };
+        auto tt = query.value(0).toString();
+
+        return result;
+    }
+    //возвращает список подписок
+    auto _getFollowee(QString follower)
+    {
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QVector<QString> result; //плохо с точки зрения памяти и скорости
+        query.prepare("SELECT followee FROM Followers WHERE follower=:follower;");
+        query.bindValue(":follower", follower);
+        query.exec();
+        while (query.next()) {
+            result.append(query.value(0).toString());
+        };
+        return result;
+    }
 public:
+    QJsonArray getFollowers(QString folowee)
+    {
+        auto temp = _getFollowers(folowee);
+        QJsonArray result;
+        QString str;
+        foreach (str,temp) {
+           result.append(str);
+        }
+        return result;
+    }
+    QJsonArray getFollowee(QString follower)
+    {
+        auto temp = _getFollowee(follower);
+        QJsonArray result;
+        QString str;
+        foreach (str,temp) {
+           result.append(str);
+        }
+        return result;
+    }
 
+
+};
+
+class UserInfo {
+public:
+    static QJsonObject getUserInfo(QString email, bool& isUserExist)
+    {
+
+        QString strGoodReply = Source::getUserTemplate();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        QJsonObject objectResponce = jsonResponse.object();
+        QJsonObject jsonArray = objectResponce["response"].toObject();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("SELECT * FROM Users WHERE email=:user;");
+        query.bindValue(":user", email);
+        query.exec();
+        bool ok = query.next();
+        //   QJsonObject jsonArray;
+        if (ok) {
+            jsonArray["email"] = query.value(1).toString();
+            jsonArray["username"] = query.value(2).toString();
+            if (jsonArray["username"] == "")
+                jsonArray["username"] = QJsonValue::Null;
+            jsonArray["about"] = query.value(3).toString();
+            if (jsonArray["about"] == "")
+                jsonArray["about"] = QJsonValue::Null;
+
+            jsonArray["name"] = query.value(4).toString();
+            if (jsonArray["name"] == "")
+                jsonArray["name"] = QJsonValue::Null;
+
+            jsonArray["isAnonymous"] = query.value(5).toBool();
+            isUserExist = true;
+
+            //
+        } else {
+            isUserExist = false;
+        }
+
+        return jsonArray;
+    }
+    static QJsonObject getFullUserInfo(QString email, bool& isUserExist)
+    {
+        QJsonObject jsonArray = getUserInfo(email, isUserExist);
+        UserInsideInfo userInsideInfo;
+        if (isUserExist) {
+
+            QJsonArray followers = userInsideInfo.getFollowers(email);
+            QJsonArray followee = userInsideInfo.getFollowee(email);
+            //   QJsonObject jsonArray;
+            jsonArray["following"] = followee;
+            jsonArray["followers"] = followers;
+
+        }
+        return jsonArray;
+    }
 };
 
 #endif // USERINFO_H
