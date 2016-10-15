@@ -1,10 +1,11 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 #include "DB.h"
-#include <Wt/WResource>
-#include <Wt/WServer>
 #include "Forum.h"
 #include "User.h"
+#include <Thread.h>
+#include <Wt/WResource>
+#include <Wt/WServer>
 
 using namespace Wt;
 
@@ -21,6 +22,11 @@ public:
         server.addResource(&userDetails, "/db/api/user/details/");
         server.addResource(&userFollow, "/db/api/user/follow/");
         server.addResource(&userUpdateProfile, "/db/api/user/updateProfile/");
+        server.addResource(&userListFollowers, "/db/api/user/listFollowers/");
+        server.addResource(&threadCreate, "/db/api/thread/create/");
+        server.addResource(&threadDetails, "/db/api/thread/details/");
+        server.addResource(&threadDetails, "/db/api/thread/close/");
+        server.addResource(&threadList, "/db/api/thread/list/");
     }
 
 private: // :)
@@ -29,9 +35,13 @@ private: // :)
     UserCreate userCreate;
     UserDetails userDetails;
     ForumCreate forumCreate;
-    UserFollow  userFollow;
+    UserFollow userFollow;
     UserUpdateProfile userUpdateProfile;
-
+    UserListFollowers userListFollowers;
+    ThreadCreate threadCreate;
+    ThreadDetails threadDetails;
+    ThreadClose threadClose;
+    ThreadList threadList;
 };
 
 #endif // ROUTER_H

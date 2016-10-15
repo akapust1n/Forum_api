@@ -17,6 +17,7 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <qvector.h>
+#include <Source.h>
 
 class UserInsideInfo {
 private:
@@ -32,7 +33,6 @@ private:
         while (query.next()) {
             result.append(query.value(0).toString());
         };
-        auto tt = query.value(0).toString();
 
         return result;
     }
@@ -49,14 +49,15 @@ private:
         };
         return result;
     }
+
 public:
     QJsonArray getFollowers(QString folowee)
     {
         auto temp = _getFollowers(folowee);
         QJsonArray result;
         QString str;
-        foreach (str,temp) {
-           result.append(str);
+        foreach (str, temp) {
+            result.append(str);
         }
         return result;
     }
@@ -65,13 +66,11 @@ public:
         auto temp = _getFollowee(follower);
         QJsonArray result;
         QString str;
-        foreach (str,temp) {
-           result.append(str);
+        foreach (str, temp) {
+            result.append(str);
         }
         return result;
     }
-
-
 };
 
 class UserInfo {
@@ -81,8 +80,8 @@ public:
 
         QString strGoodReply = Source::getUserTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
-        QJsonObject jsonArray = objectResponce["response"].toObject();
+        //  QJsonObject objectResponce = jsonResponse.object();
+        QJsonObject jsonArray = jsonResponse.object();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("SELECT * FROM Users WHERE email=:user;");
         query.bindValue(":user", email);
@@ -90,6 +89,7 @@ public:
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
+            // jsonArray["id"] = query.value(0).toInt();
             jsonArray["email"] = query.value(1).toString();
             jsonArray["username"] = query.value(2).toString();
             if (jsonArray["username"] == "")
@@ -123,8 +123,31 @@ public:
             //   QJsonObject jsonArray;
             jsonArray["following"] = followee;
             jsonArray["followers"] = followers;
-
         }
+        return jsonArray;
+    }
+    static QJsonObject getFullUserInfoID(int id, bool& isUserExist)
+    {
+        QJsonObject jsonArray;
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("SELECT email FROM Users WHERE id=:id;");
+        query.bindValue(":id", id);
+        bool ok = query.exec();
+        if (query.next()) {
+            QString email = query.value(0).toString();
+            jsonArray = getUserInfo(email, isUserExist);
+            UserInsideInfo userInsideInfo;
+            if (isUserExist) {
+
+                QJsonArray followers = userInsideInfo.getFollowers(email);
+                QJsonArray followee = userInsideInfo.getFollowee(email);
+                //   QJsonObject jsonArray;
+                jsonArray["following"] = followee;
+                jsonArray["followers"] = followers;
+            }
+        }
+
         return jsonArray;
     }
 };

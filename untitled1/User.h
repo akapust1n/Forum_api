@@ -10,6 +10,8 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
+#include <RequestManager.h>
+#include <Source.h>
 #include <UserInfo.h>
 #include <Wt/Http/Response>
 #include <Wt/Json/Object>
@@ -18,8 +20,41 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+//TODO
+class HandleRequestBase {
+protected:
+    QJsonObject objectRequest;
+    QJsonObject objectResponce;
+    QJsonObject responseContent; //jsonArray
+    std::string output;
 
-class UserCreate : public Wt::WResource {
+protected:
+    // virtual bool doSqlRequest();
+    void handlePostParams(const Wt::Http::Request& request)
+    {
+        QString params = LineAnalyze::getRequestBody(request);
+        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
+
+        objectRequest = jsonRequest.object();
+    }
+    void handleResponse()
+    {
+        QString strGoodReply = Source::getAnswerTemplate();
+
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        objectResponce = jsonResponse.object();
+
+        responseContent = objectResponce["response"].toObject();
+    }
+    void prepareOutput()
+    {
+        QJsonDocument doc(objectResponce);
+        QByteArray data = doc.toJson();
+        output = data.toStdString();
+    }
+};
+
+class UserCreate : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~UserCreate()
     {
@@ -29,10 +64,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        QString params = LineAnalyze::getRequestBody(request);
-        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
-
-        QJsonObject objectRequest = jsonRequest.object();
+        handlePostParams(request);
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("INSERT INTO Users (username, about, name, email, isAnonymous) VALUES (:username, :about, :name, :email, :isAnonymous);");
@@ -43,35 +75,25 @@ protected:
         query.bindValue(":isAnonymous", objectRequest["isAnonymous"].toBool());
         bool ok = query.exec();
 
-        QString strGoodReply = Source::getAnswerTemplate();
+        handleResponse();
+        objectResponce["code"] = ok ? 0 : 5;
 
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
+        responseContent["username"] = objectRequest["username"];
+        responseContent["about"] = objectRequest["about"];
+        responseContent["name"] = objectRequest["name"].toString();
+        responseContent["email"] = objectRequest["email"];
+        responseContent["isAnonymous"] = objectRequest["isAnonymous"];
+        objectResponce["response"] = responseContent;
 
-        QJsonObject jsonArray = objectResponce["response"].toObject();
-        objectResponce["code"] = ok?0:5;
-
-        jsonArray["username"] = objectRequest["username"];
-        jsonArray["about"] = objectRequest["about"];
-        jsonArray["name"] = objectRequest["name"].toString();
-        jsonArray["email"] = objectRequest["email"];
-        jsonArray["isAnonymous"] = objectRequest["isAnonymous"];
-        objectResponce["response"] = jsonArray;
-
-
-        QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
-        QJsonDocument doc2(jsonArray);
-        QByteArray data2 = doc2.toJson();
-
+        prepareOutput();
         response.setStatus(200);
 
-        response.out() << data.toStdString();
-        std::cout<<data2.toStdString();
+        response.out() << output;
+        std::cout << output << "Tut";
     }
 };
 
-class UserDetails : public Wt::WResource {
+class UserDetails : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~UserDetails()
     {
@@ -90,24 +112,20 @@ protected:
         QString strGoodReply = Source::getAnswerTemplate();
         bool isUserExist = false;
 
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
-        QJsonObject jsonArray = UserInfo::getFullUserInfo(user, isUserExist);
-        if (!isUserExist) {
-            objectResponce["code"] = 1;
-        } else {
-            objectResponce["code"] = 0;
-            objectResponce["response"] = jsonArray;
-        }
-        QJsonDocument doc(objectResponce); //если пользователя такого нет, то отдаем код 1 и дефолтные значения
-        QByteArray data = doc.toJson();
+        handleResponse();
+        responseContent = UserInfo::getFullUserInfo(user, isUserExist);
+        objectResponce["response"] = responseContent;
+
+        objectResponce["code"] = isUserExist ? 0 : 1;
+
+        prepareOutput();
         response.setStatus(200);
-        response.out() << data.toStdString();
-        std::cout<<data.toStdString()<<std::endl;
+        response.out() << output;
+        // std::cout << data.toStdString() << std::endl;
     }
 };
 
-class UserFollow : public Wt::WResource {
+class UserFollow : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~UserFollow()
     {
@@ -117,11 +135,9 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        QString params = LineAnalyze::getRequestBody(request);
+        handlePostParams(request);
 
-        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
-
-        QJsonObject objectRequest = jsonRequest.object();
+        handleResponse();
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("INSERT INTO Followers (follower, followee) VALUES (:follower, :followee);");
@@ -129,27 +145,23 @@ protected:
         query.bindValue(":followee", objectRequest["followee"].toString());
         bool ok = query.exec();
 
-        QJsonObject objectResponce = objectRequest;
         bool isUserExist = false;
-        QJsonObject jsonArray = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
+        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
         if (isUserExist) {
             objectResponce["code"] = 0;
-            objectResponce["response"] = jsonArray;
-        }
-        else {
+            objectResponce["response"] = responseContent;
+        } else {
             objectResponce["code"] = 1;
             objectResponce["response"] = "error message";
         }
 
-        QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
-
+        prepareOutput();
         response.setStatus(200);
 
-        response.out() << data.toStdString();
+        response.out() << output;
     }
 };
-class UserUpdateProfile: public Wt::WResource {
+class UserUpdateProfile : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~UserUpdateProfile()
     {
@@ -159,15 +171,9 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        QString params = LineAnalyze::getRequestBody(request);
+        handlePostParams(request);
 
-        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
-        QJsonObject objectRequest = jsonRequest.object();
-
-        QString strGoodReply = Source::getAnswerTemplate();
-
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
+         handleResponse();
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Users SET about=:about, name=:name WHERE email=:user;");
@@ -175,17 +181,72 @@ protected:
         query.bindValue(":about", objectRequest["about"].toString());
         query.bindValue(":name", objectRequest["name"].toString());
         bool ok = query.exec();
+
         bool isUserExist = true;
-        QJsonObject jsonArray = UserInfo::getFullUserInfo(objectRequest["user"].toString(), isUserExist);
+        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["user"].toString(), isUserExist);
         if (isUserExist) {
             objectResponce["code"] = 0;
-            objectResponce["response"] = jsonArray;
-        }
-        else {
+            objectResponce["response"] = responseContent;
+        } else {
             objectResponce["code"] = 1;
             objectResponce["response"] = "error message";
         }
 
+        prepareOutput();
+
+        response.out() << output;
+        // std::cout << "DATA____" << data.toStdString();
+    }
+};
+
+class UserListFollowers : public Wt::WResource {
+public:
+    virtual ~UserListFollowers()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString user;
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        QString limit;
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        if (since_id != "")
+            str_since = " AND id >= " + since_id;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit + ";";
+        if (order != "")
+            str_order = " ORDER BY name " + order;
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("SELECT id FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=:user" + str_since + str_order + str_limit + ";");
+        query.bindValue(":user", user);
+        bool ok = query.exec();
+
+        QString strGoodReply = Source::getAnswerTemplateList();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        QJsonObject objectResponce = jsonResponse.object();
+        QJsonArray arrayOfUsers;
+        bool isUserExist = true; // заглушка
+        if (ok) {
+            while (query.next()) {
+                int id = query.value(0).toInt();
+                arrayOfUsers.append(UserInfo::getFullUserInfoID(id, isUserExist));
+            }
+        }
+        objectResponce["response"] = arrayOfUsers;
         QJsonDocument doc(objectResponce);
         QByteArray data = doc.toJson();
 

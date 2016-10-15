@@ -50,55 +50,5 @@ private:
     }
 
 };
-class Source {
-public:
-    static QString getAnswerTemplate()
-    {
-        QString answer = "{"
-                         "\"code\": 0,"
-                         "\"response\":{"
-                         "}"
-                         " }";
-        return answer;
-    }
-    static QString getUserTemplate()
-    {
-        QString answer =  "{"
-                          "\"code\": 0,"
-                          "\"response\": {"
-                          "\"about\": \"doNOT_SHOW\","
-                          "\"email\": \"example@mail.ru\","
-                          "\"followers\": [],"
-                          "\"following\": [],"
-                          "\"id\": -1,"
-                          "\"isAnonymous\": false,"
-                          "\"name\": \"John\","
-                          "\"subscriptions\": [],"
-                          "\"username\": \"user1\""
-                          " }"
-                          " }";
-       /* QString answer = "{"
-           "\"code\": 0,"
-            "\"response\": {"
-                "\"about\": \"hello im user1\","
-                "\"email\": \"example@mail.ru\","
-                "\"followers\": ["
-                    "\"example3@mail.ru\""
-                "],"
-                "\"following\": ["
-                    "\"example3@mail.ru\":"
-                "],"
-                "\"id\": 1,"
-                "\"isAnonymous\": false,"
-                "\"name\": \"John\","
-                "\"subscriptions\": ["
-                    "4"
-                "],"
-                "\"username\": \"user1\""
-           " }"
-        "}";*/
-        return answer;
-    }
-};
 
 #endif // ENCODING_H
