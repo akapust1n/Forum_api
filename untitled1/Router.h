@@ -38,6 +38,8 @@ public:
         server.addResource(&postDetails, "/db/api/post/details/");
         server.addResource(&postRemove, "/db/api/post/remove/");
         server.addResource(&postRestore, "/db/api/post/restore/");
+        server.addResource(&postUpdate, "/db/api/post/update/");
+        server.addResource(&postVote, "/db/api/post/vote/");
     }
 
 private: // :)
@@ -59,6 +61,8 @@ private: // :)
     PostDetails postDetails;
     PostRemove postRemove;
     PostRestore postRestore;
+    PostUpdate postUpdate;
+    PostVote postVote;
 };
 
 #endif // ROUTER_H

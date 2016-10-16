@@ -206,4 +206,69 @@ protected:
         response.out() << output;
     }
 };
+
+class PostUpdate : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~PostUpdate()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        bool isPostExist = false;
+
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Posts SET message=? WHERE id=?;");
+        query.bindValue(0, objectRequest["message"].toString());
+        query.bindValue(1, objectRequest["post"].toInt());
+        bool ok = query.exec();
+        handleResponse();
+        responseContent = PostInfo::getFullPostInfo(objectRequest["post"].toInt(), isPostExist);
+        responseContent["post"] = objectRequest["post"];
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
+
+class PostVote: public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~PostVote()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        bool isPostExist = false;
+
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Posts SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
+        query.bindValue(0, (objectRequest["vote"].toInt() >0?1:0));
+        query.bindValue(1, (objectRequest["vote"].toInt() >0?0:1));
+        query.bindValue(2, objectRequest["post"].toInt());
+        bool ok = query.exec();
+        handleResponse();
+        responseContent = PostInfo::getFullPostInfo(objectRequest["post"].toInt(), isPostExist);
+        responseContent["post"] = objectRequest["post"];
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
 #endif // POST_H

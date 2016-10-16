@@ -85,6 +85,7 @@ public:
             jsonArray["isEdited"] = query.value(11).toBool();
             jsonArray["isSpam"] = query.value(12).toBool();
             jsonArray["isDeleted"] = query.value(13).toBool();
+            jsonArray["points"] = query.value(7).toInt() - query.value(8).toInt();
 
             isPostExist = true;
 
