@@ -55,7 +55,7 @@ public:
         "}";*/
         return answer;
     }
-    static QString getThreadTemplate()
+    static QString getThreadCreateTemplate()
     {
         QString answer = "{"
                          "\"date\": \"2014-01-01 00:00:01\","
@@ -68,6 +68,25 @@ public:
                          "\"title\": \"TforumTEMPLATE\","
                          "\"user\": \"forumTEMPLATE\""
                          "}";
+        return answer;
+    }
+    static QString getFullThreadTemplate()
+    {
+        QString answer = "{"
+            "\"date\": \"2014-01-01 00:00:01\","
+            "\"dislikes\": 0,"\
+            "\"forum\": \"forum1\","
+            "\"id\": 1,"
+            "\"isClosed\": true,"
+            "\"isDeleted\": true,"
+            "\"likes\": 0,"
+            "\"message\": \"hey hey hey hey!\","
+            "\"points\": 0,"
+            "\"posts\": 0,"
+           "\"slug\": \"Threadwithsufficientlylargetitle\","
+            "\"title\": \"Thread With Sufficiently Large Title\","
+            "\"user\": \"example3@mail.ru\""
+        "}";
         return answer;
     }
     static QString getPostTemplate()

@@ -26,13 +26,14 @@ public:
     static int countPosts(int thread_id)
     {
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("SELECT COUNT(*) as posts FROM Posts WHERE thread=:id AND isDeleted=false;");
+        query.prepare("SELECT COUNT(*) FROM Posts WHERE thread_id=:id AND isDeleted=false;");
         query.bindValue(":id", thread_id);
-        query.exec();
-        bool ok = query.next();
+        bool ok = query.exec();
+
         int result = 0;
-        if (ok)
+        if ( query.next())
             result = query.value(0).toInt();
+        std::cout<<"RESULT_____"<<result<<std::endl;
         return result;
     }
     static QJsonObject getFullPostInfo(int id, bool& isPostExist)

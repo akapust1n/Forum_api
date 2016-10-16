@@ -152,4 +152,58 @@ protected:
     }
 };
 
+class PostRemove : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~PostRemove()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        handleResponse();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Posts SET isDeleted=true WHERE id=?;");
+        query.bindValue(0, objectRequest["post"].toInt());
+        bool ok = query.exec();
+        responseContent["post"] = objectRequest["post"];
+
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
+
+class PostRestore : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~PostRestore()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        handleResponse();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Posts SET isDeleted=false WHERE id=?;");
+        query.bindValue(0, objectRequest["post"].toInt());
+        bool ok = query.exec();
+        responseContent["post"] = objectRequest["post"];
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
 #endif // POST_H

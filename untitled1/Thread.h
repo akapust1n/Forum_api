@@ -52,7 +52,7 @@ protected:
         if (ok) {
             objectResponce["code"] = 0;
             bool isThreadExist = true; //костыль(
-            objectResponce["response"] = ThreadInfo::getFullThreadInfo(query.lastInsertId().toInt(), isThreadExist);
+            objectResponce["response"] = ThreadInfo::getThreadCreateInfo(query.lastInsertId().toInt(), isThreadExist);
         }
 
         else {
@@ -195,9 +195,10 @@ protected:
         handleResponse();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Threads SET isDeleted=true WHERE id=?;");
-        query.bindValue(0, objectRequest["thread"].toString());
+        query.bindValue(0, objectRequest["thread"].toInt());
         bool ok = query.exec();
         responseContent["thread"] = objectRequest["thread"];
+
         objectResponce["code"] = ok ? 0 : 1;
         objectResponce["response"] = responseContent;
 
@@ -222,7 +223,7 @@ protected:
         handleResponse();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Threads SET isDeleted=false WHERE id=?;");
-        query.bindValue(0, objectRequest["thread"].toString());
+        query.bindValue(0, objectRequest["thread"].toInt());
         bool ok = query.exec();
         responseContent["thread"] = objectRequest["thread"];
         objectResponce["code"] = ok ? 0 : 1;
