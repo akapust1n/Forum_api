@@ -63,7 +63,7 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
-        std::cout << output << "Tut";
+       // std::cout << output << "Tut";
     }
 };
 class ThreadDetails : public Wt::WResource, public HandleRequestBase {
@@ -109,6 +109,9 @@ protected:
         }
         if (relatedArray[1] != "") { //TODO
             // responseContent["user"] = UserInfo::getFullUserInfo(responseContent["user"], isUserExist);
+        }
+        if(responseContent["isDeleted"].toBool()) {
+            responseContent["posts"] = 0;
         }
         objectResponce["response"] = responseContent;
 
@@ -192,6 +195,33 @@ protected:
         handleResponse();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Threads SET isDeleted=true WHERE id=?;");
+        query.bindValue(0, objectRequest["thread"].toString());
+        bool ok = query.exec();
+        responseContent["thread"] = objectRequest["thread"];
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
+
+class ThreadRestore : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~ThreadRestore()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        handleResponse();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Threads SET isDeleted=false WHERE id=?;");
         query.bindValue(0, objectRequest["thread"].toString());
         bool ok = query.exec();
         responseContent["thread"] = objectRequest["thread"];

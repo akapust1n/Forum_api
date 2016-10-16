@@ -70,6 +70,27 @@ public:
                          "}";
         return answer;
     }
+    static QString getPostTemplate()
+    {
+        QString answer =  "{"
+            "\"date\": \"2014-01-02 00:02:01\","
+            "\"dislikes\": 0,"
+            "\"forum\": \"forum2\","
+            "\"id\": 3,"
+            "\"isApproved\": false,"
+            "\"isDeleted\": true,"
+            "\"isEdited\": true,"
+            "\"isHighlighted\": false,"
+            "\"isSpam\": true,"
+            "\"likes\": 0,"
+            "\"message\": \"my message 1\","
+            "\"parent\": \"\""
+            "\"points\": 0,"
+            "\"thread\": \"\","
+            "\"user\": \"example@mail.ru\""
+        "}";
+        return answer;
+    }
 };
 
 #endif // SOURCE_H

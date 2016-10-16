@@ -36,7 +36,6 @@ public:
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
-            QString tttt;
 
             jsonArray["id"] = query.value(0).toInt();
             jsonArray["forum"] = query.value(1).toString();
@@ -44,16 +43,15 @@ public:
             jsonArray["title"] = query.value(3).toString();
             jsonArray["slug"] = query.value(4).toString();
             jsonArray["message"] = query.value(5).toString();
-            QVariant temp( query.value(6).toDateTime().toString("yyyy-mm-dd hh:mm:ss"));
-          //  jsonArray["date"] = temp.toString("yyyy-mm-dd hh:mm:ss");
 
             jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
 
-           // jsonArray["date"] = temp.toJsonValue();
             jsonArray["likes"] = query.value(7).toInt();
             jsonArray["dislikes"] = query.value(8).toInt();
             jsonArray["isClosed"] = query.value(9).toBool();
             jsonArray["isDeleted"] = query.value(10).toBool();
+            jsonArray["points"] = query.value(7).toInt() - query.value(8).toInt();
+
 
             isThreadExist = true;
 
