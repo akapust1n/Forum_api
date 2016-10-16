@@ -20,6 +20,7 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include <QJsonArray>
 //TODO
 class HandleRequestBase {
 protected:
@@ -208,16 +209,18 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        QString user;
-        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+    {/*
+        QString userOrForum;
+        userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+        if (userOrForum == "")
+
         QString order;
         order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
         //0 - magic constant for empty parametr
         QString since_id;
-        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        since_id = userOrForum.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
         QString limit;
-        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+        limit = userOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
 
         QString str_since;
         QString str_limit;
@@ -232,7 +235,7 @@ protected:
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("SELECT id FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=:user" + str_since + str_order + str_limit + ";");
-        query.bindValue(":user", user);
+        query.bindValue(":user", userOrForum);
         bool ok = query.exec();
 
         QString strGoodReply = Source::getAnswerTemplateList();
@@ -252,7 +255,7 @@ protected:
 
         response.setStatus(200);
 
-        response.out() << data.toStdString();
+        response.out() << data.toStdString();*/
     }
 };
 

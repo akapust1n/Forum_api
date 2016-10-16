@@ -27,6 +27,7 @@ public:
         server.addResource(&threadDetails, "/db/api/thread/details/");
         server.addResource(&threadDetails, "/db/api/thread/close/");
         server.addResource(&threadList, "/db/api/thread/list/");
+        server.addResource(&threadRemove, "/db/api/thread/remove/");
     }
 
 private: // :)
@@ -42,6 +43,7 @@ private: // :)
     ThreadDetails threadDetails;
     ThreadClose threadClose;
     ThreadList threadList;
+    ThreadRemove threadRemove;
 };
 
 #endif // ROUTER_H

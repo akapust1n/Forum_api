@@ -20,6 +20,7 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include <QRegExp>
 
 class ThreadCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -48,18 +49,15 @@ protected:
         bool ok = query.exec();
 
         handleResponse();
-        objectResponce["code"] = ok ? 0 : 4;
+        if (ok) {
+            objectResponce["code"] = 0;
+            bool isThreadExist = true; //костыль(
+            objectResponce["response"] = ThreadInfo::getFullThreadInfo(query.lastInsertId().toInt(), isThreadExist);
+        }
 
-        responseContent["forum"] = objectRequest["forum"];
-        responseContent["title"] = objectRequest["title"];
-        responseContent["isClosed"] = objectRequest["isClosed"].toString();
-        responseContent["user"] = objectRequest["user"];
-        responseContent["date"] = objectRequest["date"];
-        responseContent["message"] = objectRequest["message"].toString();
-        responseContent["user"] = objectRequest["user"];
-        responseContent["slug"] = objectRequest["slug"];
-        responseContent["isDeleted"] = objectRequest["isDeleted"];
-        objectResponce["response"] = responseContent;
+        else {
+            objectResponce["code"] = 4;
+        }
 
         prepareOutput();
         response.setStatus(200);
@@ -118,8 +116,10 @@ protected:
 
         prepareOutput();
         response.setStatus(200);
+
+
         response.out() << output;
-        //std::cout << data.toStdString() << std::endl;
+
     }
 };
 class ThreadClose : public Wt::WResource, public HandleRequestBase {
@@ -159,7 +159,49 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        QString user;
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        QString limit;
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
 
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        if (since_id != "")
+            str_since = " AND id >= " + since_id;
     }
 };
+
+class ThreadRemove : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~ThreadRemove()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+
+        handlePostParams(request);
+        handleResponse();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("UPDATE Threads SET isDeleted=true WHERE id=?;");
+        query.bindValue(0, objectRequest["thread"].toString());
+        bool ok = query.exec();
+        responseContent["thread"] = objectRequest["thread"];
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = responseContent;
+
+        prepareOutput();
+        response.setStatus(200);
+        response.out() << output;
+    }
+};
+
 #endif // THREAD_H
