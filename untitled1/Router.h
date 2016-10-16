@@ -40,6 +40,8 @@ public:
         server.addResource(&postRestore, "/db/api/post/restore/");
         server.addResource(&postUpdate, "/db/api/post/update/");
         server.addResource(&postVote, "/db/api/post/vote/");
+        server.addResource(&postList, "/db/api/post/list/");
+
     }
 
 private: // :)
@@ -63,6 +65,7 @@ private: // :)
     PostRestore postRestore;
     PostUpdate postUpdate;
     PostVote postVote;
+    PostList postList;
 };
 
 #endif // ROUTER_H

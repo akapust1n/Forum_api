@@ -60,15 +60,15 @@ protected:
         query.bindValue(1, objectRequest["thread"].toInt());
         query.bindValue(2, objectRequest["message"].toString());
         query.bindValue(3, objectRequest["user"].toString());
-       // if (objectRequest["forum"] != QJsonValue::Null)
-            query.bindValue(4, objectRequest["forum"].toString());
-      //  else
-       //     query.bindValue(4, QJsonValue::Null);
+        // if (objectRequest["forum"] != QJsonValue::Null)
+        query.bindValue(4, objectRequest["forum"].toString());
+        //  else
+        //     query.bindValue(4, QJsonValue::Null);
 
-       if (objectRequest["parent"] !=QJsonValue::Null)
+        if (objectRequest["parent"] != QJsonValue::Null)
             query.bindValue(5, objectRequest["parent"].toInt());
         else
-           query.bindValue(5, QVariant::Int);
+            query.bindValue(5, QVariant::Int);
         query.bindValue(6, objectRequest["isApproved"].toBool());
         query.bindValue(7, objectRequest["isHighlighted"].toBool());
         query.bindValue(8, objectRequest["isEdited"].toBool());
@@ -221,7 +221,6 @@ protected:
         handlePostParams(request);
         bool isPostExist = false;
 
-
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Posts SET message=? WHERE id=?;");
         query.bindValue(0, objectRequest["message"].toString());
@@ -239,7 +238,7 @@ protected:
     }
 };
 
-class PostVote: public Wt::WResource, public HandleRequestBase {
+class PostVote : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~PostVote()
     {
@@ -253,11 +252,10 @@ protected:
         handlePostParams(request);
         bool isPostExist = false;
 
-
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Posts SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
-        query.bindValue(0, (objectRequest["vote"].toInt() >0?1:0));
-        query.bindValue(1, (objectRequest["vote"].toInt() >0?0:1));
+        query.bindValue(0, (objectRequest["vote"].toInt() > 0 ? 1 : 0));
+        query.bindValue(1, (objectRequest["vote"].toInt() > 0 ? 0 : 1));
         query.bindValue(2, objectRequest["post"].toInt());
         bool ok = query.exec();
         handleResponse();
@@ -271,4 +269,78 @@ protected:
         response.out() << output;
     }
 };
+
+class PostList : public Wt::WResource {
+public:
+    virtual ~PostList()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString threadOrForum;
+        bool isForum=false;
+        threadOrForum = threadOrForum.fromStdString(request.getParameter("thread") ? *request.getParameter("thread") : "");
+        if (threadOrForum == ""){
+            isForum = true;
+            threadOrForum = threadOrForum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+}
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = threadOrForum.fromStdString(request.getParameter("since") ? *request.getParameter("since") : "");
+        QString limit;
+        limit = threadOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        QString quote = "\"";
+
+        if (since_id != "")
+            str_since = " AND p.date >= " + quote+since_id+quote;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit ;
+        if (order != "")
+            str_order = " ORDER BY p.date " + order;
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        if (!isForum) {
+            expression = "SELECT p.id, p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Threads second ON second.id=p.thread_id WHERE second.id="+threadOrForum + str_since + str_order + str_limit+ ";";
+
+        } else {
+            expression = "SELECT p.id,p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Forums second ON p.forum=second.short_name WHERE second.short_name="+quote+threadOrForum+quote + str_since + str_order + str_limit+ ";";
+
+
+        }
+        bool ok = query.exec(expression);
+
+        QString strGoodReply = Source::getAnswerTemplateList();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        QJsonObject objectResponce = jsonResponse.object();
+        QJsonArray arrayOfPosts;
+        bool isUserExist = true; // заглушка
+
+        if (ok) {
+            while (query.next()) {
+                int id = query.value(0).toInt();
+                QJsonObject jsonObj=PostInfo::getFullPostInfo(id, isUserExist); // assume this has been populated with Json data
+                arrayOfPosts<<jsonObj;
+
+            }
+        }
+        objectResponce["response"] = arrayOfPosts;
+        QJsonDocument doc(objectResponce);
+        QByteArray data = doc.toJson();
+        response.setStatus(200);
+
+        response.out() << data.toStdString();
+    }
+};
+
 #endif // POST_H
