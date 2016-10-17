@@ -5,6 +5,7 @@
 #include "Trash.h"
 #include "User.h"
 #include <PostInfo.h>
+#include <PostInfo.h>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -24,7 +25,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-
 class PostCreate : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~PostCreate()
@@ -270,7 +270,7 @@ protected:
     }
 };
 
-class PostList : public Wt::WResource {
+class PostList : public Wt::WResource, public HandleRequestList {
 public:
     virtual ~PostList()
     {
@@ -281,12 +281,12 @@ protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
         QString threadOrForum;
-        bool isForum=false;
+        bool isForum = false;
         threadOrForum = threadOrForum.fromStdString(request.getParameter("thread") ? *request.getParameter("thread") : "");
-        if (threadOrForum == ""){
+        if (threadOrForum == "") {
             isForum = true;
             threadOrForum = threadOrForum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
-}
+        }
         QString order;
         order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
         //0 - magic constant for empty parametr
@@ -301,45 +301,41 @@ protected:
         QString quote = "\"";
 
         if (since_id != "")
-            str_since = " AND p.date >= " + quote+since_id+quote;
+            str_since = " AND p.date >= " + quote + since_id + quote;
 
         if (limit != "")
-            str_limit = " LIMIT " + limit ;
+            str_limit = " LIMIT " + limit;
         if (order != "")
             str_order = " ORDER BY p.date " + order;
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
         if (!isForum) {
-            expression = "SELECT p.id, p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Threads second ON second.id=p.thread_id WHERE second.id="+threadOrForum + str_since + str_order + str_limit+ ";";
+            expression = "SELECT p.id, p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Threads second ON second.id=p.thread_id WHERE second.id=" + threadOrForum + str_since + str_order + str_limit + ";";
 
         } else {
-            expression = "SELECT p.id,p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Forums second ON p.forum=second.short_name WHERE second.short_name="+quote+threadOrForum+quote + str_since + str_order + str_limit+ ";";
-
-
+            expression = "SELECT p.id,p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Forums second ON p.forum=second.short_name WHERE second.short_name=" + quote + threadOrForum + quote + str_since + str_order + str_limit + ";";
         }
         bool ok = query.exec(expression);
 
-        QString strGoodReply = Source::getAnswerTemplateList();
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
-        QJsonArray arrayOfPosts;
+       handleResponse();
+       QJsonArray arrayOfPosts;
         bool isUserExist = true; // заглушка
 
         if (ok) {
             while (query.next()) {
                 int id = query.value(0).toInt();
-                QJsonObject jsonObj=PostInfo::getFullPostInfo(id, isUserExist); // assume this has been populated with Json data
-                arrayOfPosts<<jsonObj;
-
+                QJsonObject jsonObj = PostInfo::getFullPostInfo(id, isUserExist); // assume this has been populated with Json data
+                arrayOfPosts << jsonObj;
             }
         }
         objectResponce["response"] = arrayOfPosts;
-        QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
+
+        prepareOutput();
+
         response.setStatus(200);
 
-        response.out() << data.toStdString();
+        response.out() <<output;
     }
 };
 

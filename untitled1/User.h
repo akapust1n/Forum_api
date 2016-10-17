@@ -10,7 +10,6 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-#include <RequestManager.h>
 #include <Source.h>
 #include <UserInfo.h>
 #include <Wt/Http/Response>
@@ -22,38 +21,7 @@
 #include <iostream>
 #include <QJsonArray>
 //TODO
-class HandleRequestBase {
-protected:
-    QJsonObject objectRequest;
-    QJsonObject objectResponce;
-    QJsonObject responseContent; //jsonArray
-    std::string output;
-
-protected:
-    // virtual bool doSqlRequest();
-    void handlePostParams(const Wt::Http::Request& request)
-    {
-        QString params = LineAnalyze::getRequestBody(request);
-        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
-
-        objectRequest = jsonRequest.object();
-    }
-    void handleResponse()
-    {
-        QString strGoodReply = Source::getAnswerTemplate();
-
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        objectResponce = jsonResponse.object();
-
-        responseContent = objectResponce["response"].toObject();
-    }
-    void prepareOutput()
-    {
-        QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
-        output = data.toStdString();
-    }
-};
+#include <HandleTemplates.h>
 
 class UserCreate : public Wt::WResource, public HandleRequestBase {
 public:
