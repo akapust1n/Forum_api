@@ -2,6 +2,7 @@
 #define USER_H
 #include "Trash.h"
 #include <QJsonArray>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -19,7 +20,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include <QJsonArray>
 //TODO
 #include <HandleTemplates.h>
 
@@ -142,7 +142,7 @@ protected:
     {
         handlePostParams(request);
 
-         handleResponse();
+        handleResponse();
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Users SET about=:about, name=:name WHERE email=:user;");
@@ -168,7 +168,7 @@ protected:
     }
 };
 
-class UserListFollowers : public Wt::WResource {
+class UserListFollowers : public Wt::WResource, public HandleRequestList {
 public:
     virtual ~UserListFollowers()
     {
@@ -177,7 +177,7 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {/*
+    { /*
         QString userOrForum;
         userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
         if (userOrForum == "")
@@ -224,6 +224,54 @@ protected:
         response.setStatus(200);
 
         response.out() << data.toStdString();*/
+
+        QString user;
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        QString limit;
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        QString quote = "\"";
+
+        if (since_id != "")
+            str_since = " AND id >= " + quote + since_id + quote;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit;
+        if (order != "")
+            str_order = " ORDER BY name " + order;
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=" + quote + user + quote + str_since + str_order + str_limit + ";";
+        bool ok = query.exec(expression);
+
+        handleResponse();
+        QJsonArray arrayOfFollowers;
+        bool isUserExist = true; // заглушка
+
+        if (ok) {
+            while (query.next()) {
+                QString email = query.value(0).toString();
+                QJsonObject jsonObj = UserInfo::getFullUserInfo(email, isUserExist); // assume this has been populated with Json data
+                arrayOfFollowers << jsonObj;
+            }
+        }
+        objectResponce["response"] = arrayOfFollowers;
+
+        prepareOutput();
+
+        response.setStatus(200);
+
+        response.out() << output;
     }
 };
 

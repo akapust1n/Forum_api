@@ -8,6 +8,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonValue>
+#include <QRegExp>
 #include <QSqlQuery>
 #include <QString>
 #include <QStringList>
@@ -20,7 +21,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include <QRegExp>
 
 class ThreadCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -63,7 +63,7 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
-       // std::cout << output << "Tut";
+        // std::cout << output << "Tut";
     }
 };
 class ThreadDetails : public Wt::WResource, public HandleRequestBase {
@@ -110,7 +110,7 @@ protected:
         if (relatedArray[1] != "") { //TODO
             // responseContent["user"] = UserInfo::getFullUserInfo(responseContent["user"], isUserExist);
         }
-        if(responseContent["isDeleted"].toBool()) {
+        if (responseContent["isDeleted"].toBool()) {
             responseContent["posts"] = 0;
         }
         objectResponce["response"] = responseContent;
@@ -120,9 +120,7 @@ protected:
         prepareOutput();
         response.setStatus(200);
 
-
         response.out() << output;
-
     }
 };
 class ThreadClose : public Wt::WResource, public HandleRequestBase {
@@ -152,33 +150,7 @@ protected:
     }
 };
 
-class ThreadList : public Wt::WResource, public HandleRequestBase {
-public:
-    virtual ~ThreadList()
-    {
-        beingDeleted();
-    };
 
-protected:
-    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        QString user;
-        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
-        QString order;
-        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
-        //0 - magic constant for empty parametr
-        QString since_id;
-        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
-        QString limit;
-        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
-
-        QString str_since;
-        QString str_limit;
-        QString str_order;
-        if (since_id != "")
-            str_since = " AND id >= " + since_id;
-    }
-};
 
 class ThreadRemove : public Wt::WResource, public HandleRequestBase {
 public:
@@ -235,4 +207,72 @@ protected:
     }
 };
 
+class ThreadList : public Wt::WResource, public HandleRequestList {
+public:
+    virtual ~ThreadList()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString userOrForum;
+        bool isForum = false;
+        userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+        if (userOrForum == "") {
+            isForum = true;
+            userOrForum = userOrForum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+        }
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = userOrForum.fromStdString(request.getParameter("since") ? *request.getParameter("since") : "");
+        QString limit;
+        limit = userOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        QString quote = "\"";
+
+        if (since_id != "")
+            str_since = " AND date >= " + quote + since_id + quote;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit;
+        if (order != "")
+            str_order = " ORDER BY p.date " + order;
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        if (!isForum) {
+            expression = "SELECT * FROM Threads WHERE user=" + userOrForum + str_since + str_order + str_limit + ";";
+
+        } else {
+            expression = "SELECT * FROM Threads WHERE forum=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";
+        }
+        bool ok = query.exec(expression);
+
+        handleResponse();
+        QJsonArray arrayOfThreads;
+        bool isThreadExist = true; // заглушка
+
+        if (ok) {
+            while (query.next()) {
+                int id = query.value(0).toInt();
+                QJsonObject jsonObj = ThreadInfo::getFullThreadInfo(id, isThreadExist); // assume this has been populated with Json data
+                arrayOfThreads << jsonObj;
+            }
+        }
+        objectResponce["response"] = arrayOfThreads;
+
+        prepareOutput();
+
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
 #endif // THREAD_H

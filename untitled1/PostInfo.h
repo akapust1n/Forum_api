@@ -31,9 +31,9 @@ public:
         bool ok = query.exec();
 
         int result = 0;
-        if ( query.next())
+        if (query.next())
             result = query.value(0).toInt();
-        std::cout<<"RESULT_____"<<result<<std::endl;
+        std::cout << "RESULT_____" << result << std::endl;
         return result;
     }
     static QJsonObject getFullPostInfo(int id, bool& isPostExist)
@@ -69,10 +69,10 @@ public:
             jsonArray["thread"] = query.value(4).toInt();
             // jsonArray["thread"]
             //    = QJsonValue::N;
-           if(!query.value(5).isNull())
+            if (!query.value(5).isNull())
                 jsonArray["parent"] = query.value(5).toInt();
-           else
-               jsonArray["parent"] = QJsonValue::Null;
+            else
+                jsonArray["parent"] = QJsonValue::Null;
 
             // jsonArray["parent"] = QJsonValue::Null;
 

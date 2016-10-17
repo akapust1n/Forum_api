@@ -1,5 +1,6 @@
 #ifndef HANDLETEMPLATES_H
 #define HANDLETEMPLATES_H
+#include "PostInfo.h"
 #include "Trash.h"
 #include <QJsonArray>
 #include <QJsonArray>
@@ -20,7 +21,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include "PostInfo.h"
 
 class HandleRequestBase {
 protected:
@@ -57,11 +57,11 @@ protected:
 class HandleRequestList : public HandleRequestBase {
 
 protected:
-    virtual void handleResponse(){
-    QString strGoodReply = Source::getAnswerTemplateList();
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-     objectResponce = jsonResponse.object();
-
+    virtual void handleResponse()
+    {
+        QString strGoodReply = Source::getAnswerTemplateList();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        objectResponce = jsonResponse.object();
     }
     virtual void prepareOutput()
     {

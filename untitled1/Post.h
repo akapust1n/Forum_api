@@ -318,8 +318,8 @@ protected:
         }
         bool ok = query.exec(expression);
 
-       handleResponse();
-       QJsonArray arrayOfPosts;
+        handleResponse();
+        QJsonArray arrayOfPosts;
         bool isUserExist = true; // заглушка
 
         if (ok) {
@@ -335,7 +335,7 @@ protected:
 
         response.setStatus(200);
 
-        response.out() <<output;
+        response.out() << output;
     }
 };
 

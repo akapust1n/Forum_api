@@ -42,6 +42,7 @@ public:
         server.addResource(&postVote, "/db/api/post/vote/");
         server.addResource(&postList, "/db/api/post/list/");
 
+
     }
 
 private: // :)
@@ -56,7 +57,6 @@ private: // :)
     ThreadCreate threadCreate;
     ThreadDetails threadDetails;
     ThreadClose threadClose;
-    ThreadList threadList;
     ThreadRemove threadRemove;
     ThreadRestore threadRestore;
     PostCreate postCreate;
@@ -66,6 +66,7 @@ private: // :)
     PostUpdate postUpdate;
     PostVote postVote;
     PostList postList;
+    ThreadList threadList;
 };
 
 #endif // ROUTER_H

@@ -3,9 +3,9 @@
 #include <QJsonValue>
 #include <QString>
 #include <QVariant>
+#include <Wt/Http/Response>
 #include <boost/any.hpp>
 #include <string>
-#include <Wt/Http/Response>
 
 class LineAnalyze {
 public:
@@ -21,7 +21,8 @@ public:
     {
         QString params;
         std::string temp;
-        while (std::getline(request.in(), temp));
+        while (std::getline(request.in(), temp))
+            ;
         params.fromStdString(temp);
         try {
             params = LineAnalyze::fixUnicode(temp);
@@ -29,6 +30,7 @@ public:
         }
         return params;
     }
+
 private:
     static QString fixUnicode(std::string line)
     {
@@ -37,7 +39,7 @@ private:
         //auto temp2 = request.getParameter("first");
         temp = temp.fromStdString(line);
 
-        temp.replace(" u\'", "\'");   //ну это костыль
+        temp.replace(" u\'", "\'"); //ну это костыль
         temp.replace("\'", "\"");
         temp.replace(":True", ":true");
         temp.replace(": True", ": true");
@@ -48,7 +50,6 @@ private:
         // temp.replace("u\'","\"u\'");
         return temp;
     }
-
 };
 
 #endif // ENCODING_H

@@ -74,13 +74,11 @@ protected:
             jsonArray["short_name"] = short_name;
             jsonArray["user"] = user;
             jsonObject["response"] = jsonArray;
-        }
-        else {
+        } else {
             jsonArray["name"] = query.value(0).toString();
             jsonArray["short_name"] = query.value(1).toString();
             jsonArray["user"] = query.value(2).toString();
             jsonObject["response"] = jsonArray;
-
         }
         QJsonDocument doc(jsonObject);
         QByteArray data = doc.toJson();
