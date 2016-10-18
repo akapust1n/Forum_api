@@ -31,8 +31,14 @@ public:
         server.addResource(&threadDetails, "/db/api/thread/details/");
         server.addResource(&threadClose, "/db/api/thread/close/");
         server.addResource(&threadList, "/db/api/thread/list/");
+        server.addResource(&threadListPost, "/db/api/thread/listPosts/");
         server.addResource(&threadRemove, "/db/api/thread/remove/");
         server.addResource(&threadRestore, "/db/api/thread/restore/");
+        server.addResource(&threadOpen, "/db/api/thread/open/");
+        server.addResource(&threadUpdate, "/db/api/thread/update/");
+        server.addResource(&threadVote, "/db/api/thread/vote/");
+        server.addResource(&threadSubscribe, "/db/api/thread/subscribe/");
+         server.addResource(&threadUnSubscribe, "/db/api/thread/unsubscribe/");
 
         server.addResource(&postCreate, "/db/api/post/create/");
         server.addResource(&postDetails, "/db/api/post/details/");
@@ -43,22 +49,33 @@ public:
         server.addResource(&postList, "/db/api/post/list/");
 
 
+
     }
 
 private: // :)
     DbClear dbClear;
     DbStatus dbStatus;
+    ForumCreate forumCreate;
+
     UserCreate userCreate;
     UserDetails userDetails;
-    ForumCreate forumCreate;
     UserFollow userFollow;
     UserUpdateProfile userUpdateProfile;
     UserListFollowers userListFollowers;
+
     ThreadCreate threadCreate;
     ThreadDetails threadDetails;
     ThreadClose threadClose;
     ThreadRemove threadRemove;
     ThreadRestore threadRestore;
+    ThreadList threadList;
+    ThreadListPost threadListPost;
+    ThreadOpen threadOpen;
+    ThreadUpdate threadUpdate;
+    ThreadVote threadVote;
+    ThreadSubscribe threadSubscribe;
+    ThreadUnSubscribe threadUnSubscribe;
+
     PostCreate postCreate;
     PostDetails postDetails;
     PostRemove postRemove;
@@ -66,7 +83,8 @@ private: // :)
     PostUpdate postUpdate;
     PostVote postVote;
     PostList postList;
-    ThreadList threadList;
+
+
 };
 
 #endif // ROUTER_H

@@ -53,9 +53,12 @@ protected:
 
         if (objectRequest["isSpam"] == "")
             objectRequest["isSpam"] = false;
+        QString path;
+        if (objectRequest["parent"] == QJsonValue::Null)
+            path = "";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+        query.prepare("INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
         query.bindValue(0, objectRequest["date"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
         query.bindValue(2, objectRequest["message"].toString());
@@ -65,23 +68,42 @@ protected:
         //  else
         //     query.bindValue(4, QJsonValue::Null);
 
-        if (objectRequest["parent"] != QJsonValue::Null)
+        if (objectRequest["parent"] != QJsonValue::Null) {
             query.bindValue(5, objectRequest["parent"].toInt());
-        else
+            path = PostInfo::getPath(objectRequest["parent"].toInt());
+
+        } else {
+            path = PostInfo::getPath(-1);
             query.bindValue(5, QVariant::Int);
+        }
         query.bindValue(6, objectRequest["isApproved"].toBool());
         query.bindValue(7, objectRequest["isHighlighted"].toBool());
         query.bindValue(8, objectRequest["isEdited"].toBool());
         query.bindValue(9, objectRequest["isSpam"].toBool());
         query.bindValue(10, objectRequest["isDeleted"].toBool());
+
+        query.bindValue(11, path);
         bool ok = query.exec();
         auto tt = query.lastError().text();
 
         handleResponse();
         if (ok) {
+
+            //обновляем path. ТУТ ДОЛЖНА БЫТЬ ТРАНЗАКЦИЯ(наверное)
+//            int last_id = query.lastInsertId().toInt();
+//            if (path==""){
+//            QString str_last_id = QString::number(last_id-1, BASE);
+//            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+//            query2.prepare("UPDATE Posts SET path=? WHERE id=?;");
+//            query2.bindValue(0, str_last_id);
+//            query2.bindValue(1, last_id);
+//           bool ok2= query2.exec();
+//           std::cout<<str_last_id.toStdString()<<"___"<<ok2<<"HAIl";}
+
+
             objectResponce["code"] = 0;
             bool isThreadExist = true; //костыль(
-            int last_id = query.lastInsertId().toInt();
+
             objectResponce["response"] = PostInfo::getFullPostInfo(query.lastInsertId().toInt(), isThreadExist);
         }
 

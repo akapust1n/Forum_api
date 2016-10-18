@@ -66,7 +66,7 @@ public:
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("SELECT * FROM Threads WHERE id=:id;");
+        query.prepare("SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
         bool ok = query.next();

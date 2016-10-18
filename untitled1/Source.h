@@ -48,7 +48,6 @@ public:
                 "\"isAnonymous\": false,"
                 "\"name\": \"John\","
                 "\"subscriptions\": ["
-                    "4"
                 "],"
                 "\"username\": \"user1\""
            " }"

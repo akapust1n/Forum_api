@@ -21,6 +21,8 @@
 #include <iostream>
 #include <qvector.h>
 
+#define BASE 36
+
 class PostInfo {
 public:
     static int countPosts(int thread_id)
@@ -95,6 +97,50 @@ public:
         }
 
         return jsonArray;
+    }
+    //джва уровня вложенности
+    //эта функция в целом ужасна по кода, ПЕРЕПИСАТЬ
+    //оно работает
+    static QString getPath(int parent_id)
+    {
+        QString result = "";
+        QString path;
+        if (parent_id != -1) {
+            QSqlQuery query(QSqlDatabase::database("apidb1"));
+            query.prepare("SELECT path,parent FROM Posts WHERE id = ? order by path;");
+            query.bindValue(0, parent_id);
+            // query.bindValue(1,thread_id);
+            bool ok = query.exec();
+            query.next();
+            path = query.value(0).toString();
+        } else
+            path = " ";
+        std::cout << "PARENT_" << parent_id << "_____" << path.toStdString();
+        //второй уровень вложенности
+        //        if (parentParentId == 0) {
+        if (path != " ") {
+            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+            query2.prepare("SELECT Count(path) FROM Posts WHERE (path LIKE ?) order by path ;");
+            query2.bindValue(0, path + "_");
+
+            bool ok2 = query2.exec();
+            query2.next();
+            QString temp = query2.value(0).toString();
+            int value = temp.toInt(0, BASE) + 1;
+            result = path + QString::number(value, BASE);
+        } else {
+            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+            query2.prepare("SELECT Count(path) FROM Posts WHERE (path REGEXP \"^.$\") order by path ;");
+            // query2.bindValue(0, "_");
+
+            bool ok2 = query2.exec();
+            query2.next();
+            QString temp = QString::number(query2.value(0).toInt(), BASE);
+            int value = temp.toInt(0, BASE) + 1;
+            result = QString::number(value, BASE);
+        }
+
+        return result;
     }
 };
 
