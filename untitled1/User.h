@@ -47,12 +47,13 @@ protected:
         handleResponse();
         objectResponce["code"] = ok ? 0 : 5;
 
-        responseContent["username"] = objectRequest["username"];
+        /*esponseContent["username"] = objectRequest["username"];
         responseContent["about"] = objectRequest["about"];
         responseContent["name"] = objectRequest["name"].toString();
         responseContent["email"] = objectRequest["email"];
-        responseContent["isAnonymous"] = objectRequest["isAnonymous"];
-        objectResponce["response"] = responseContent;
+        responseContent["isAnonymous"] = objectRequest["isAnonymous"];*/
+        bool tt= true;
+        objectResponce["response"] = UserInfo::getFullUserInfo(objectRequest["email"].toString(), tt);
 
         prepareOutput();
         response.setStatus(200);
@@ -250,6 +251,7 @@ protected:
         expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=" + quote + user + quote + str_since + str_order + str_limit + ";";
         bool ok = query.exec(expression);
 
+
         handleResponse();
         QJsonArray arrayOfFollowers;
         bool isUserExist = true; // заглушка
@@ -261,6 +263,7 @@ protected:
                 arrayOfFollowers << jsonObj;
             }
         }
+        std::cout<<query.lastQuery().toStdString()<<"HEI3_"<<ok<<"__okis";
         objectResponce["response"] = arrayOfFollowers;
 
         prepareOutput();

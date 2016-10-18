@@ -282,10 +282,10 @@ protected:
 
         bool ok = QSqlDatabase::database("apidb1").commit();
 
-        responseContent["thread"] = objectRequest["thread"];
 
         objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        bool tt =true;
+        objectResponce["response"] = ThreadInfo::getFullThreadInfo(objectRequest["thread"].toInt(), tt);
 
         prepareOutput();
         response.setStatus(200);
@@ -316,10 +316,10 @@ protected:
 
         bool ok = QSqlDatabase::database("apidb1").commit();
 
-        responseContent["thread"] = objectRequest["thread"];
 
         objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        bool tt =true;
+        objectResponce["response"] = ThreadInfo::getFullThreadInfo(objectRequest["thread"].toInt(), tt);;
 
         prepareOutput();
         response.setStatus(200);
@@ -350,6 +350,7 @@ protected:
         bool ok = QSqlDatabase::database("apidb1").commit();
 
         responseContent["thread"] = objectRequest["thread"];
+        responseContent["user"] = objectRequest["user"];
 
         objectResponce["code"] = ok ? 0 : 1;
         objectResponce["response"] = responseContent;
@@ -374,7 +375,7 @@ protected:
         handleResponse();
         bool test = QSqlDatabase::database("apidb1").transaction();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("DELETE FROM Subscribers WHERE user=? AND thread=?;");
+        query.prepare("DELETE FROM Subscribers WHERE user=? AND thread_id=?;");
         query.bindValue(0, objectRequest["user"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
 
@@ -383,6 +384,7 @@ protected:
         bool ok = QSqlDatabase::database("apidb1").commit();
 
         responseContent["thread"] = objectRequest["thread"];
+        responseContent["user"] = objectRequest["user"];
 
         objectResponce["code"] = ok ? 0 : 1;
         objectResponce["response"] = responseContent;
@@ -390,6 +392,7 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        std::cout<<output<<" output";
     }
 };
 class ThreadList : public Wt::WResource, public HandleRequestList {

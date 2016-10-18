@@ -117,7 +117,7 @@ public:
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
-            // jsonArray["id"] = query.value(0).toInt();
+            jsonArray["id"] = query.value(0).toInt();
             jsonArray["email"] = query.value(1).toString();
             jsonArray["username"] = query.value(2).toString();
             if (jsonArray["username"] == "")
