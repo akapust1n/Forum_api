@@ -1,6 +1,8 @@
 #ifndef FORUM_H
 #define FORUM_H
+#include "ForumInfo.h"
 #include "Trash.h"
+#include <HandleTemplates.h>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -18,7 +20,7 @@
 #include <iostream>
 #include <istream>
 
-class ForumCreate : public Wt::WResource {
+class ForumCreate : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~ForumCreate()
     {
@@ -28,68 +30,30 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        QString params = LineAnalyze::getRequestBody(request);
-        //  auto temp4 = Wt::Json::parse(request);
-        /*auto temp5 = request.queryString();
-        auto temp1 = request.contentType();
-        auto temp2 = request.contentLength();
-        auto temp6 = request.continuation();
+        handlePostParams(request);
 
-        auto temp3 = request.getParameter("name");
-        std::string temp7;
-       // auto temp8 = request.in();
-        while (std::getline(request.in(),temp7));
-          params.fromStdString(temp7);
-         //иногда падает с ошибкой почему-то
-
-    */
-
-        QJsonDocument jsonRequest = QJsonDocument::fromJson(params.toUtf8());
-
-        QJsonObject jsonObject2 = jsonRequest.object();
-        QString name = jsonObject2["name"].toString();
-        QString short_name = jsonObject2["short_name"].toString();
-        QString user = jsonObject2["user"].toString();
-
-        QString strReply = "{ "
-                           "  \"code\": 0, "
-                           "  \"response\":{\"id\": 1,\"name\": \"Forum With Sufficiently Large Name\",\"short_name\": \"forumwithsufficientlylargename\",\"user\": \"richard.nixon@example.com\"} "
-                           "}";
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.exec("SHOW TABLES;");
-        bool ok2 = query.exec();
-        query.clear();
         query.prepare("INSERT INTO Forums (name, short_name, user) VALUES (:name, :short_name, :user);");
-        query.bindValue(":name", name);
-        query.bindValue(":short_name", short_name);
-        query.bindValue(":user", user);
+        query.bindValue(":name", objectRequest["name"].toString());
+        query.bindValue(":short_name", objectRequest["short_name"].toString());
+        query.bindValue(":user", objectRequest["user"].toString());
         bool ok = query.exec();
 
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strReply.toUtf8());
-        QJsonObject jsonObject = jsonResponse.object();
+        handleResponse();
+        //проверка на код и всё такое тут должны быть
+        objectResponce["code"] = ok ? 0 : 5;
+        bool isForumExist = true;
+        objectResponce["response"] = ForumInfo::getForumCreateInfo(objectRequest["name"].toString(), isForumExist);
 
-        QJsonObject jsonArray = jsonObject["response"].toObject();
-        if (ok) {
-            jsonArray["name"] = name;
-            jsonArray["short_name"] = short_name;
-            jsonArray["user"] = user;
-            jsonObject["response"] = jsonArray;
-        } else {
-            jsonArray["name"] = query.value(0).toString();
-            jsonArray["short_name"] = query.value(1).toString();
-            jsonArray["user"] = query.value(2).toString();
-            jsonObject["response"] = jsonArray;
-        }
-        QJsonDocument doc(jsonObject);
-        QByteArray data = doc.toJson();
+        prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << data.toStdString();
+        response.out() << output;
     }
 };
 
-class ForumDetails : public Wt::WResource {
+class ForumDetails : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~ForumDetails()
     {
@@ -99,7 +63,30 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        auto detatils = request.getParameter("details");
+        QString related;
+        related = related.fromStdString(request.getParameter("related") ? *request.getParameter("related") : " ");
+        QString short_name;
+        short_name = short_name.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : " ");
+
+        // QString user;
+
+        bool isForumExist = false;
+
+        handleResponse();
+        if (related != " ") {
+            responseContent = ForumInfo::getFullForumInfo(short_name, isForumExist);
+        } else {
+            responseContent = ForumInfo::getForumCreateInfo(short_name, isForumExist);
+        }
+
+        objectResponce["response"] = responseContent;
+
+        objectResponce["code"] = isForumExist ? 0 : 1;
+
+        prepareOutput();
+        response.setStatus(200);
+
+        response.out() << output;
     };
 };
 

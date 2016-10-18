@@ -20,6 +20,7 @@ public:
         server.addResource(&dbStatus, "/db/api/status/");
 
         server.addResource(&forumCreate, "/db/api/forum/create/");
+        server.addResource(&forumDetails, "/db/api/forum/details/");
 
         server.addResource(&userCreate, "/db/api/user/create/");
         server.addResource(&userDetails, "/db/api/user/details/");
@@ -38,7 +39,7 @@ public:
         server.addResource(&threadUpdate, "/db/api/thread/update/");
         server.addResource(&threadVote, "/db/api/thread/vote/");
         server.addResource(&threadSubscribe, "/db/api/thread/subscribe/");
-         server.addResource(&threadUnSubscribe, "/db/api/thread/unsubscribe/");
+        server.addResource(&threadUnSubscribe, "/db/api/thread/unsubscribe/");
 
         server.addResource(&postCreate, "/db/api/post/create/");
         server.addResource(&postDetails, "/db/api/post/details/");
@@ -55,7 +56,9 @@ public:
 private: // :)
     DbClear dbClear;
     DbStatus dbStatus;
+
     ForumCreate forumCreate;
+    ForumDetails forumDetails;
 
     UserCreate userCreate;
     UserDetails userDetails;
@@ -83,6 +86,7 @@ private: // :)
     PostUpdate postUpdate;
     PostVote postVote;
     PostList postList;
+
 
 
 };

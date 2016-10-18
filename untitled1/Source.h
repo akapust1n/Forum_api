@@ -109,6 +109,18 @@ public:
                          "}";
         return answer;
     }
+
+    static QString getForumTemplate()
+    {
+        QString answer = "{"
+                         "\"id\": 1,"
+                         "\"name\": \"Forum With Sufficiently Large Name\","
+                         "\"short_name\": \"forumwithsufficientlylargename\","
+                         "\"user\": \"richard.nixon@example.com\" "
+                         "}";
+        return answer;
+    }
+
 };
 
 #endif // SOURCE_H
