@@ -85,14 +85,17 @@ protected:
         QString relatedArray[2]; //0-user, 1-forum
         relatedArray[0] = "";
         relatedArray[1] = "";
+        bool error = false;
 
         auto temp = request.getParameterValues("related");
 
         for (auto i = temp.begin(); i != temp.end(); i++) {
             if ((*i) == "user")
                 relatedArray[0] = "user";
-            else
+            else if ((*i) == "forum")
                 relatedArray[1] = "forum";
+            else
+                error = true;
         }
 
         // QString user;
@@ -116,6 +119,8 @@ protected:
         objectResponce["response"] = responseContent;
 
         objectResponce["code"] = isThreadExist ? 0 : 1;
+        if(error)
+            objectResponce["code"] =3;
 
         prepareOutput();
         response.setStatus(200);
@@ -399,41 +404,44 @@ protected:
     {
         QString userOrForum;
         bool isForum = false;
-        userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
-        if (userOrForum == "") {
+        userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
+        if (userOrForum == " ") {
             isForum = true;
-            userOrForum = userOrForum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+            userOrForum = userOrForum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : " ");
         }
         QString order;
-        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
         //0 - magic constant for empty parametr
         QString since_id;
-        since_id = userOrForum.fromStdString(request.getParameter("since") ? *request.getParameter("since") : "");
+        since_id = userOrForum.fromStdString(request.getParameter("since") ? *request.getParameter("since") : " ");
         QString limit;
-        limit = userOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+        limit = userOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
 
         QString str_since;
         QString str_limit;
         QString str_order;
         QString quote = "\"";
 
-        if (since_id != "")
+        if (since_id != " ")
             str_since = " AND date >= " + quote + since_id + quote;
 
-        if (limit != "")
+        if (limit != " ")
             str_limit = " LIMIT " + limit;
-        if (order != "")
-            str_order = " ORDER BY p.date " + order;
+        if (order == "asc")
+            str_order = " ORDER BY date asc ";
+        else
+            str_order = " ORDER BY date desc ";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
         if (!isForum) {
-            expression = "SELECT * FROM Threads WHERE user=" + quote + userOrForum+ quote + str_since + str_order + str_limit + ";";
+            expression = "SELECT * FROM Threads WHERE user=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";
 
         } else {
             expression = "SELECT * FROM Threads WHERE forum=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";
         }
         bool ok = query.exec(expression);
+        std::cout << query.lastQuery().toStdString() << "hh_";
 
         handleResponse();
         QJsonArray arrayOfThreads;

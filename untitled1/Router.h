@@ -31,6 +31,8 @@ public:
         server.addResource(&userUnFollow, "/db/api/user/unfollow/");
         server.addResource(&userUpdateProfile, "/db/api/user/updateProfile/");
         server.addResource(&userListFollowers, "/db/api/user/listFollowers/");
+        server.addResource(&userListFollowing, "/db/api/user/listFollowing/");
+        server.addResource(&userListPosts, "/db/api/user/listPosts/");
 
 
         server.addResource(&threadCreate, "/db/api/thread/create/");
@@ -71,7 +73,9 @@ private: // :)
     UserFollow userFollow;
     UserUpdateProfile userUpdateProfile;
     UserListFollowers userListFollowers;
+    UserListFollowing userListFollowing;
     UserUnFollow userUnFollow;
+    UserListPosts userListPosts;
 
     ThreadCreate threadCreate;
     ThreadDetails threadDetails;

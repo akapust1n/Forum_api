@@ -1,6 +1,7 @@
 #ifndef USER_H
 #define USER_H
 #include "Trash.h"
+#include <HandleTemplates.h>
 #include <QJsonArray>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -8,6 +9,7 @@
 #include <QJsonValue>
 #include <QJsonValue>
 #include <QSqlQuery>
+#include <QSqlResult>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -20,8 +22,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-//TODO
-#include <HandleTemplates.h>
 
 class UserCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -153,7 +153,6 @@ protected:
         query.exec();
         bool ok = QSqlDatabase::database("apidb1").commit();
 
-
         bool isUserExist = false;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
         if (isUserExist) {
@@ -219,77 +218,32 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    { /*
-        QString userOrForum;
-        userOrForum = userOrForum.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
-        if (userOrForum == "")
-
-        QString order;
-        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
-        //0 - magic constant for empty parametr
-        QString since_id;
-        since_id = userOrForum.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
-        QString limit;
-        limit = userOrForum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
-
-        QString str_since;
-        QString str_limit;
-        QString str_order;
-        if (since_id != "")
-            str_since = " AND id >= " + since_id;
-
-        if (limit != "")
-            str_limit = " LIMIT " + limit + ";";
-        if (order != "")
-            str_order = " ORDER BY name " + order;
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("SELECT id FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=:user" + str_since + str_order + str_limit + ";");
-        query.bindValue(":user", userOrForum);
-        bool ok = query.exec();
-
-        QString strGoodReply = Source::getAnswerTemplateList();
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        QJsonObject objectResponce = jsonResponse.object();
-        QJsonArray arrayOfUsers;
-        bool isUserExist = true; // заглушка
-        if (ok) {
-            while (query.next()) {
-                int id = query.value(0).toInt();
-                arrayOfUsers.append(UserInfo::getFullUserInfoID(id, isUserExist));
-            }
-        }
-        objectResponce["response"] = arrayOfUsers;
-        QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
-
-        response.setStatus(200);
-
-        response.out() << data.toStdString();*/
-
+    {
         QString user;
-        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : "");
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
 
         QString order;
-        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
         //0 - magic constant for empty parametr
         QString since_id;
-        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : " ");
         QString limit;
-        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
 
         QString str_since;
         QString str_limit;
         QString str_order;
         QString quote = "\"";
 
-        if (since_id != "")
+        if (since_id != " ")
             str_since = " AND id >= " + quote + since_id + quote;
 
-        if (limit != "")
+        if (limit != " ")
             str_limit = " LIMIT " + limit;
-        if (order != "")
-            str_order = " ORDER BY name " + order;
+        if (order == "asc")
+            str_order = " ORDER BY name asc ";
+        else
+            str_order = " ORDER BY name desc";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
@@ -308,6 +262,133 @@ protected:
             }
         }
         objectResponce["response"] = arrayOfFollowers;
+
+        prepareOutput();
+
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
+
+class UserListFollowing : public Wt::WResource, public HandleRequestList {
+public:
+    virtual ~UserListFollowing()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString user;
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
+
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = user.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : " ");
+        QString limit;
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        QString quote = "\"";
+
+        if (since_id != " ")
+            str_since = " AND id >= " + quote + since_id + quote;
+
+        if (limit != " ")
+            str_limit = " LIMIT " + limit;
+        if (order == "asc")
+            str_order = " ORDER BY name asc";
+        else
+            str_order = " ORDER BY name desc";
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.followee WHERE f.follower=" + quote + user + quote + str_since + str_order + str_limit + ";";
+        bool ok = query.exec(expression);
+
+        handleResponse();
+        QJsonArray arrayOfFollowers;
+        bool isUserExist = true; // заглушка
+        if (ok) {
+            while (query.next()) {
+                QString email = query.value(0).toString();
+                std::cout << "EMAIL_" << email.toStdString();
+                QJsonObject jsonObj = UserInfo::getFullUserInfo(email, isUserExist); // assume this has been populated with Json data
+                arrayOfFollowers << jsonObj;
+                std::cout << "HERE22";
+            }
+        }
+        objectResponce["response"] = arrayOfFollowers;
+        std::cout << query.lastQuery().toStdString() << "hh2_" << arrayOfFollowers.isEmpty() << "_size";
+
+        prepareOutput();
+
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
+
+class UserListPosts : public Wt::WResource, public HandleRequestList {
+public:
+    virtual ~UserListPosts()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString user;
+        user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
+
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = user.fromStdString(request.getParameter("since") ? *request.getParameter("since") : " ");
+        QString limit;
+        limit = user.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
+
+        QString str_since = " ";
+        QString str_limit = " ";
+        QString str_order = " ";
+        QString quote = "\"";
+
+        if (since_id != " ")
+            str_since = " AND date >= " + quote + since_id + quote;
+        if (limit != " ")
+            str_limit = " LIMIT " + limit;
+        if (order == "asc")
+            str_limit = " ORDER by date asc ";
+        else
+            str_limit = " ORDER by date desc ";
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        expression = "SELECT p.date, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p WHERE p.user=" + quote + user + quote + str_since  + str_order + str_limit + ";";
+
+        bool ok = query.exec(expression);
+        std::cout << query.lastQuery().toStdString() << "HEI3";
+        handleResponse();
+        QJsonArray arrayOfPosts;
+        bool isPostExist = true; // заглушка
+
+        if (ok) {
+            while (query.next()) {
+                int id = query.value(3).toInt();
+                QJsonObject jsonObj = PostInfo::getFullPostInfo(id, isPostExist); // assume this has been populated with Json data
+                arrayOfPosts << jsonObj;
+            }
+        }
+        objectResponce["code"] = ok ? 0 : 1;
+        objectResponce["response"] = arrayOfPosts;
 
         prepareOutput();
 

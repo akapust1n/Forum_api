@@ -15,8 +15,7 @@ public:
     {
         QString answer = "{"
                          "\"code\": 0,"
-                         "\"response\":["
-                         "]"
+                         "\"response\":[]"
                          " }";
         return answer;
     }

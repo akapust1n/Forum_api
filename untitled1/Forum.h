@@ -337,9 +337,9 @@ protected:
         if (limit != "")
             str_limit = " LIMIT " + limit;
         if (order == "asc")
-            str_order = " ORDER BY u.name asc ";
+            str_order = " ORDER BY user asc ";
         else
-            str_order = " ORDER BY u.name desc ";
+            str_order = " ORDER BY user desc ";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
@@ -359,7 +359,7 @@ protected:
             }
         }
         objectResponce["response"] = arrayOfThreads;
-
+       std::cout<<query.lastQuery().toStdString()<<"USERLIST";
         prepareOutput();
 
         response.setStatus(200);
