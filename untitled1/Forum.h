@@ -190,14 +190,178 @@ protected:
                 jsonArray["thread"] = ThreadInfo::getFullThreadInfo(jsonArray["thread"].toInt(), isUserExist);
             }
             arrayOfPosts << jsonArray;
-
         }
-       std::cout<<query.lastQuery().toStdString()<<"QUERY";
+        std::cout << query.lastQuery().toStdString() << "QUERY";
         objectResponce["response"] = arrayOfPosts;
 
         objectResponce["code"] = ok ? 0 : 1;
 
         prepareOutput();
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
+
+class ForumListThreads : public Wt::WResource, public HandleRequestList {
+public:
+    virtual ~ForumListThreads()
+    {
+        beingDeleted();
+    };
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString forum;
+        forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = since_id.fromStdString(request.getParameter("since") ? *request.getParameter("since") : "");
+        QString limit;
+        limit = limit.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString relatedArray[2]; //0-user, 1-forum
+        relatedArray[0] = "";
+        relatedArray[1] = "";
+
+        auto temp = request.getParameterValues("related");
+
+        for (auto i = temp.begin(); i != temp.end(); i++) {
+            if ((*i) == "user")
+                relatedArray[0] = "user";
+            else if ((*i) == "forum")
+                relatedArray[1] = "forum";
+        }
+
+        QString str_since = " ";
+        QString str_limit = " ";
+        QString str_order = " ";
+        QString quote = "\"";
+
+        if (since_id != "")
+            str_since = " AND p.date >= " + quote + since_id + quote;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit;
+        if (order == "asc")
+            str_order = " ORDER BY p.date asc";
+        else
+            str_order = " ORDER BY p.date  desc";
+
+        // QString user;
+
+        handleResponse();
+        QJsonArray arrayOfPosts;
+        QString expression = "SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads p WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        bool ok = query.exec(expression);
+
+        while (query.next()) {
+            QString strGoodReply = Source::getFullThreadTemplate();
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+            //  QJsonObject objectResponce = jsonResponse.object();
+            QJsonObject jsonArray = jsonResponse.object();
+
+            //   QJsonObject jsonArray;
+            jsonArray["id"] = query.value(0).toInt();
+            jsonArray["forum"] = query.value(1).toString();
+            jsonArray["user"] = query.value(2).toString();
+            jsonArray["title"] = query.value(3).toString();
+            jsonArray["slug"] = query.value(4).toString();
+            jsonArray["message"] = query.value(5).toString();
+
+            jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+            jsonArray["likes"] = query.value(7).toInt();
+            jsonArray["dislikes"] = query.value(8).toInt();
+            jsonArray["isClosed"] = query.value(9).toBool();
+            jsonArray["isDeleted"] = query.value(10).toBool();
+            jsonArray["points"] = query.value(7).toInt() - query.value(8).toInt();
+            jsonArray["posts"] = PostInfo::countPosts(jsonArray["id"].toInt());
+
+            bool isUserExist = true; // костыль
+            if (relatedArray[0] != "") {
+                jsonArray["user"] = UserInfo::getFullUserInfo(jsonArray["user"].toString(), isUserExist);
+            }
+            if (relatedArray[1] != "") {
+                jsonArray["forum"] = ForumInfo::getForumCreateInfo(forum, isUserExist);
+            }
+
+            arrayOfPosts << jsonArray;
+        }
+        std::cout << query.lastQuery().toStdString() << "QUERY";
+        objectResponce["response"] = arrayOfPosts;
+
+        objectResponce["code"] = ok ? 0 : 1;
+
+        prepareOutput();
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
+
+class ForumListUsers : public Wt::WResource, public HandleRequestList {
+public:
+    virtual ~ForumListUsers()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        QString forum;
+        forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+
+        QString order;
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        //0 - magic constant for empty parametr
+        QString since_id;
+        since_id = forum.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        QString limit;
+        limit = forum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+
+        QString str_since;
+        QString str_limit;
+        QString str_order;
+        QString quote = "\"";
+
+        if (since_id != "")
+            str_since = " AND u.id >= " + quote + since_id + quote;
+
+        if (limit != "")
+            str_limit = " LIMIT " + limit;
+        if (order == "asc")
+            str_order = " ORDER BY u.name asc ";
+        else
+            str_order = " ORDER BY u.name desc ";
+
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString expression;
+        expression = "SELECT DISTINCT user FROM Posts p WHERE p.forum=" +quote+ forum + quote+ str_since + str_order + str_limit + ";";
+
+        bool ok = query.exec(expression);
+
+        handleResponse();
+        QJsonArray arrayOfThreads;
+        bool isThreadExist = true; // заглушка
+
+        if (ok) {
+            while (query.next()) {
+                QString name = query.value(0).toString();
+                QJsonObject jsonObj = UserInfo::getFullUserInfo(name, isThreadExist); // assume this has been populated with Json data
+                arrayOfThreads << jsonObj;
+            }
+        }
+        objectResponce["response"] = arrayOfThreads;
+
+        prepareOutput();
+
         response.setStatus(200);
 
         response.out() << output;

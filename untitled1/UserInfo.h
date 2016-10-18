@@ -57,6 +57,7 @@ private:
         query.prepare("SELECT thread_id FROM Subscribers WHERE user=:user;");
         query.bindValue(":user", user);
         bool ok = query.exec();
+        std::cout<<query.lastQuery().toInt()<<"ddd";
 
         while (query.next()) {
             result.append(query.value(0).toInt());
@@ -153,6 +154,7 @@ public:
 
             QJsonArray subscriptions = userInsideInfo.getSubscriptions(email);
             jsonArray["subscriptions"] = subscriptions;
+            std::cout<<"__"<<jsonArray.length()<<"ARRAY";
         }
         return jsonArray;
     }
@@ -175,6 +177,9 @@ public:
                 //   QJsonObject jsonArray;
                 jsonArray["following"] = followee;
                 jsonArray["followers"] = followers;
+
+                QJsonArray subscriptions = userInsideInfo.getSubscriptions(email);
+                jsonArray["subscriptions"] = subscriptions;
             }
         }
 

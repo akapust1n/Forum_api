@@ -336,7 +336,7 @@ protected:
         handleResponse();
         bool test = QSqlDatabase::database("apidb1").transaction();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("INSERT INTO Subscribers (user, thread) VALUES (?, ?);");
+        query.prepare("INSERT INTO Subscribers (user, thread_id) VALUES (?, ?);");
         query.bindValue(0, objectRequest["user"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
 
@@ -428,7 +428,7 @@ protected:
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
         if (!isForum) {
-            expression = "SELECT * FROM Threads WHERE user=" + userOrForum + str_since + str_order + str_limit + ";";
+            expression = "SELECT * FROM Threads WHERE user=" + quote + userOrForum+ quote + str_since + str_order + str_limit + ";";
 
         } else {
             expression = "SELECT * FROM Threads WHERE forum=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";

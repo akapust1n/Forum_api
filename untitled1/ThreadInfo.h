@@ -28,12 +28,14 @@ public:
     {
         QString strGoodReply = Source::getThreadCreateTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+        //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("SELECT * FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
         bool ok = query.next();
+        //   QJsonObject jsonArray;
         if (ok) {
 
             jsonArray["id"] = query.value(0).toInt();

@@ -107,12 +107,52 @@ protected:
         handlePostParams(request);
 
         handleResponse();
-
+        bool test = QSqlDatabase::database("apidb1").transaction();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("INSERT INTO Followers (follower, followee) VALUES (:follower, :followee);");
         query.bindValue(":follower", objectRequest["follower"].toString());
         query.bindValue(":followee", objectRequest["followee"].toString());
-        bool ok = query.exec();
+        query.exec();
+        bool ok = QSqlDatabase::database("apidb1").commit();
+
+        bool isUserExist = false;
+        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
+        if (isUserExist) {
+            objectResponce["code"] = 0;
+            objectResponce["response"] = responseContent;
+        } else {
+            objectResponce["code"] = 1;
+            objectResponce["response"] = "error message";
+        }
+
+        prepareOutput();
+        response.setStatus(200);
+
+        response.out() << output;
+    }
+};
+
+class UserUnFollow : public Wt::WResource, public HandleRequestBase {
+public:
+    virtual ~UserUnFollow()
+    {
+        beingDeleted();
+    }
+
+protected:
+    virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
+    {
+        handlePostParams(request);
+
+        handleResponse();
+        bool test = QSqlDatabase::database("apidb1").transaction();
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        query.prepare("DELETE FROM Followers WHERE follower=:follower AND followee=:followee;");
+        query.bindValue(":follower", objectRequest["follower"].toString());
+        query.bindValue(":followee", objectRequest["followee"].toString());
+        query.exec();
+        bool ok = QSqlDatabase::database("apidb1").commit();
+
 
         bool isUserExist = false;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
@@ -143,13 +183,15 @@ protected:
         handlePostParams(request);
 
         handleResponse();
+        bool test = QSqlDatabase::database("apidb1").transaction();
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         query.prepare("UPDATE Users SET about=:about, name=:name WHERE email=:user;");
         query.bindValue(":user", objectRequest["user"].toString());
         query.bindValue(":about", objectRequest["about"].toString());
         query.bindValue(":name", objectRequest["name"].toString());
-        bool ok = query.exec();
+        query.exec();
+        bool ok = QSqlDatabase::database("apidb1").commit();
 
         bool isUserExist = true;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["user"].toString(), isUserExist);

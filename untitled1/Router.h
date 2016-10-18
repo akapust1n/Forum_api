@@ -22,12 +22,16 @@ public:
         server.addResource(&forumCreate, "/db/api/forum/create/");
         server.addResource(&forumDetails, "/db/api/forum/details/");
         server.addResource(&forumListPosts, "/db/api/forum/listPosts/");
+        server.addResource(&forumListThreads, "/db/api/forum/listThreads/");
+        server.addResource(&forumListUsers, "/db/api/forum/listUsers/");
 
         server.addResource(&userCreate, "/db/api/user/create/");
         server.addResource(&userDetails, "/db/api/user/details/");
         server.addResource(&userFollow, "/db/api/user/follow/");
+        server.addResource(&userUnFollow, "/db/api/user/unfollow/");
         server.addResource(&userUpdateProfile, "/db/api/user/updateProfile/");
         server.addResource(&userListFollowers, "/db/api/user/listFollowers/");
+
 
         server.addResource(&threadCreate, "/db/api/thread/create/");
         server.addResource(&threadDetails, "/db/api/thread/details/");
@@ -59,12 +63,15 @@ private: // :)
     ForumCreate forumCreate;
     ForumDetails forumDetails;
     ForumListPosts forumListPosts;
+    ForumListThreads forumListThreads;
+    ForumListUsers forumListUsers;
 
     UserCreate userCreate;
     UserDetails userDetails;
     UserFollow userFollow;
     UserUpdateProfile userUpdateProfile;
     UserListFollowers userListFollowers;
+    UserUnFollow userUnFollow;
 
     ThreadCreate threadCreate;
     ThreadDetails threadDetails;
