@@ -49,6 +49,22 @@ private:
         };
         return result;
     }
+    //список подписок на треды
+    auto _getSubscriptions(QString user)
+    {
+        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QVector<int> result; //плохо с точки зрения памяти и скорости
+        query.prepare("SELECT thread_id FROM Subscribers WHERE user=:user;");
+        query.bindValue(":user", user);
+        bool ok = query.exec();
+
+        while (query.next()) {
+            result.append(query.value(0).toInt());
+        };
+        std::cout<<"LEN_"<<result.length();
+
+        return result;
+    }
 
 public:
     QJsonArray getFollowers(QString folowee)
@@ -66,6 +82,17 @@ public:
         auto temp = _getFollowee(follower);
         QJsonArray result;
         QString str;
+        foreach (str, temp) {
+            result.append(str);
+        }
+        return result;
+    }
+
+    QJsonArray getSubscriptions(QString follower)
+    {
+        auto temp = _getSubscriptions(follower);
+        QJsonArray result;
+        int str;
         foreach (str, temp) {
             result.append(str);
         }
@@ -123,6 +150,9 @@ public:
             //   QJsonObject jsonArray;
             jsonArray["following"] = followee;
             jsonArray["followers"] = followers;
+
+            QJsonArray subscriptions = userInsideInfo.getSubscriptions(email);
+            jsonArray["subscriptions"] = subscriptions;
         }
         return jsonArray;
     }

@@ -498,7 +498,7 @@ protected:
         //if (!order.isEmpty())
         str_order = " " + order;
         if (sort == "tree") {
-            str_sort = " ORDER BY path DESC ";
+            str_sort = "ORDER BY  LPAD(path, 1, \"0\") desc, path asc ";
             if (order == "asc") {
                 str_sort = " ORDER BY path asc";
             }
