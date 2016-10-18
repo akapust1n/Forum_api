@@ -481,11 +481,8 @@ protected:
 
         QString str_since = " ";
         QString str_limit = " ";
-        ;
         QString str_order = " ";
-        ;
         QString str_sort = " ";
-        ;
         QString quote = "\"";
 
         if (since_id != "")

@@ -32,7 +32,7 @@ public:
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare("SELECT * FROM Forums WHERE name=:name;");
+        query.prepare("SELECT * FROM Forums WHERE short_name=:name;");
         query.bindValue(":name", name);
         query.exec();
         bool ok = query.next();

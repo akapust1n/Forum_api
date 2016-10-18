@@ -51,19 +51,7 @@ public:
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
-            // user VARCHAR(50) NOT NULL,
-            //            message TEXT NOT NULL,
-            //            forum VARCHAR(40),
-            //            thread_id INT UNSIGNED NOT NULL,
-            //            parent INT NULL DEFAULT NULL,
-            //            date TIMESTAMP NOT NULL,
-            //            likes INT NOT NULL DEFAULT 0,
-            //            dislikes INT NOT NULL DEFAULT 0,
-            //            isApproved BOOLEAN NOT NULL DEFAULT 0,
-            //            isHighlighted BOOLEAN NOT NULL DEFAULT 0,
-            //            isEdited BOOLEAN NOT NULL DEFAULT 0,
-            //            isSpam BOOLEAN NOT NULL DEFAULT 0,
-            //            isDeleted BOOLEAN NOT NULL DEFAULT 0,
+
             jsonArray["id"] = query.value(0).toInt();
             jsonArray["user"] = query.value(1).toString();
             jsonArray["message"] = query.value(2).toString();
@@ -76,7 +64,6 @@ public:
             else
                 jsonArray["parent"] = QJsonValue::Null;
 
-            // jsonArray["parent"] = QJsonValue::Null;
 
             jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
 

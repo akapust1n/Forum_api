@@ -25,6 +25,9 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include "ForumInfo.h"
+#include "ThreadInfo.h"
+
 class PostCreate : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~PostCreate()
@@ -158,11 +161,12 @@ protected:
             responseContent["user"] = UserInfo::getFullUserInfo(responseContent["user"].toString(), isPostExist);
         }
         if (relatedArray[1] != "") { //TODO
-            // responseContent["user"] = UserInfo::getFullUserInfo(responseContent["user"], isUserExist);
+             responseContent["forum"] = ForumInfo::getFullForumInfo(responseContent["forum"].toString(), isPostExist);
         }
-        if (responseContent["isDeleted"].toBool()) {
-            responseContent["posts"] = 0;
+        if (relatedArray[2] != "") { //TODO
+             responseContent["thread"] = ThreadInfo::getFullThreadInfo(responseContent["thread"].toInt(), isPostExist);
         }
+
         objectResponce["response"] = responseContent;
 
         objectResponce["code"] = isPostExist ? 0 : 1;

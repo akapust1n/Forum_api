@@ -21,6 +21,7 @@ public:
 
         server.addResource(&forumCreate, "/db/api/forum/create/");
         server.addResource(&forumDetails, "/db/api/forum/details/");
+        server.addResource(&forumListPosts, "/db/api/forum/listPosts/");
 
         server.addResource(&userCreate, "/db/api/user/create/");
         server.addResource(&userDetails, "/db/api/user/details/");
@@ -49,8 +50,6 @@ public:
         server.addResource(&postVote, "/db/api/post/vote/");
         server.addResource(&postList, "/db/api/post/list/");
 
-
-
     }
 
 private: // :)
@@ -59,6 +58,7 @@ private: // :)
 
     ForumCreate forumCreate;
     ForumDetails forumDetails;
+    ForumListPosts forumListPosts;
 
     UserCreate userCreate;
     UserDetails userDetails;
