@@ -31,10 +31,14 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
+
         query.prepare("SELECT * FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
+        BdWrapper::closeConnection(conName);
+
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
@@ -66,10 +70,13 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
+        BdWrapper::closeConnection(conName);
+
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {

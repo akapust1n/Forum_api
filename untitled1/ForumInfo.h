@@ -32,8 +32,8 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QString one ="1";
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT * FROM Forums WHERE short_name=:name;");
         query.bindValue(":name", name);
         query.exec();
@@ -52,6 +52,7 @@ public:
         } else {
             isForumExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
@@ -61,10 +62,12 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT * FROM Forums WHERE short_name=:name;");
         query.bindValue(":name", name);
         query.exec();
+
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
@@ -77,6 +80,7 @@ public:
         } else {
             isForumExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }

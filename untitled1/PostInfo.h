@@ -28,10 +28,13 @@ class PostInfo {
 public:
     static int countPosts(int thread_id)
     {
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT COUNT(*) FROM Posts WHERE thread_id=:id AND isDeleted=false;");
         query.bindValue(":id", thread_id);
         bool ok = query.exec();
+        BdWrapper::closeConnection(conName);
+
 
         int result = 0;
         if (query.next())
@@ -45,10 +48,13 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT id, user, message,forum,thread_id, parent, date,likes, dislikes,isApproved,isHighlighted,isEdited,isSpam,isDeleted FROM Posts WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
+        BdWrapper::closeConnection(conName);
+
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
@@ -94,11 +100,14 @@ public:
         QString result = "";
         QString path;
         if (parent_id != -1) {
-            QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+            QString conName = BdWrapper::getConnection();
+            QSqlQuery query(QSqlDatabase::database(conName));
             query.prepare("SELECT path,parent FROM Posts WHERE id = ? order by path;");
             query.bindValue(0, parent_id);
             // query.bindValue(1,thread_id);
             bool ok = query.exec();
+            BdWrapper::closeConnection(conName);
+
             query.next();
             path = query.value(0).toString();
         } else
@@ -107,21 +116,28 @@ public:
         //второй уровень вложенности
         //        if (parentParentId == 0) {
         if (path != " ") {
-            QSqlQuery query2(QSqlDatabase::database(BdWrapper::getConnection()));
+            QString conName = BdWrapper::getConnection();
+            QSqlQuery query2(QSqlDatabase::database(conName));
             query2.prepare("SELECT Count(path) FROM Posts WHERE (path LIKE ?) order by path ;");
             query2.bindValue(0, path + "_");
 
             bool ok2 = query2.exec();
+            BdWrapper::closeConnection(conName);
+
             query2.next();
             QString temp = query2.value(0).toString();
             int value = temp.toInt(0, BASE) + 1;
             result = path + QString::number(value, BASE);
         } else {
-            QSqlQuery query2(QSqlDatabase::database(BdWrapper::getConnection()));
+            QString conName = BdWrapper::getConnection();
+            QSqlQuery query2(QSqlDatabase::database(conName));
+
             query2.prepare("SELECT Count(path) FROM Posts WHERE (path REGEXP \"^.$\") order by path ;");
             // query2.bindValue(0, "_");
 
             bool ok2 = query2.exec();
+            BdWrapper::closeConnection(conName);
+
             query2.next();
             QString temp = QString::number(query2.value(0).toInt(), BASE);
             int value = temp.toInt(0, BASE) + 1;

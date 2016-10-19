@@ -27,7 +27,8 @@ private:
     //возвращает список подписчиков
     auto _getFollowers(QString folowee)
     {
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
          result.clear(); //плохо с точки зрения памяти и скорости
         query.prepare("SELECT follower FROM Followers WHERE followee=:followee;");
         query.bindValue(":followee", folowee);
@@ -38,11 +39,14 @@ private:
         };
 
         return result;
+        BdWrapper::closeConnection(conName);
+
     }
     //возвращает список подписок
     auto _getFollowee(QString follower)
     {
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
          result.clear();; //плохо с точки зрения памяти и скорости
         query.prepare("SELECT followee FROM Followers WHERE follower=:follower;");
         query.bindValue(":follower", follower);
@@ -51,11 +55,13 @@ private:
             result.append(query.value(0).toString());
         };
         return result;
+        BdWrapper::closeConnection(conName);
+
     }
     //список подписок на треды
     auto _getSubscriptions(QString user)
-    {
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+    {QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         result_int.clear(); //плохо с точки зрения памяти и скорости
         query.prepare("SELECT thread_id FROM Subscribers WHERE user=:user;");
         query.bindValue(":user", user);
@@ -68,6 +74,8 @@ private:
         std::cout << "LEN_" << result.length();
 
         return result_int;
+        BdWrapper::closeConnection(conName);
+
     }
 
 public:
@@ -117,10 +125,12 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT * FROM Users WHERE email=:user;");
         query.bindValue(":user", email);
         query.exec();
+
         bool ok = query.next();
         //   QJsonObject jsonArray;
         if (ok) {
@@ -147,6 +157,7 @@ public:
         } else {
             isUserExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
@@ -170,8 +181,9 @@ public:
     static QJsonObject getFullUserInfoID(int id, bool& isUserExist)
     {
         QJsonObject jsonArray;
+        QString conName = BdWrapper::getConnection();
 
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("SELECT email FROM Users WHERE id=:id;");
         query.bindValue(":id", id);
         bool ok = query.exec();
@@ -191,6 +203,7 @@ public:
                 jsonArray["subscriptions"] = subscriptions;
             }
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
