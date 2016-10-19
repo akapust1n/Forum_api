@@ -369,13 +369,13 @@ protected:
         if (limit != " ")
             str_limit = " LIMIT " + limit;
         if (order == "asc")
-            str_limit = " ORDER by date asc ";
+            str_order = " ORDER by date asc ";
         else
-            str_limit = " ORDER by date desc ";
+            str_order = " ORDER by date desc ";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
-        expression = "SELECT p.date, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p WHERE p.user=" + quote + user + quote + str_since  + str_order + str_limit + ";";
+        expression = "SELECT p.id FROM Posts p WHERE p.user=" + quote + user + quote + str_since  + str_order + str_limit + ";";
 
         bool ok = query.exec(expression);
         std::cout << query.lastQuery().toStdString() << "HEI3";
@@ -385,7 +385,7 @@ protected:
 
         if (ok) {
             while (query.next()) {
-                int id = query.value(3).toInt();
+                int id = query.value(0).toInt();
                 QJsonObject jsonObj = PostInfo::getFullPostInfo(id, isPostExist); // assume this has been populated with Json data
                 arrayOfPosts << jsonObj;
             }
