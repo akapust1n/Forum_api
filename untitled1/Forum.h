@@ -316,34 +316,35 @@ protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
         QString forum;
-        forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+        forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : " ");
 
         QString order;
-        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "desc");
+        order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
         //0 - magic constant for empty parametr
         QString since_id;
-        since_id = forum.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : "");
+        since_id = forum.fromStdString(request.getParameter("since_id") ? *request.getParameter("since_id") : " ");
         QString limit;
-        limit = forum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+        limit = forum.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
 
         QString str_since;
         QString str_limit;
         QString str_order;
         QString quote = "\"";
 
-        if (since_id != "")
+        if (since_id != " ")
             str_since = " AND u.id >= " + quote + since_id + quote;
 
-        if (limit != "")
+        if (limit != " ")
             str_limit = " LIMIT " + limit;
         if (order == "asc")
-            str_order = " ORDER BY user asc ";
+            str_order = " ORDER BY u.name asc ";
         else
-            str_order = " ORDER BY user desc ";
+            str_order = " ORDER BY u.name desc ";
 
         QSqlQuery query(QSqlDatabase::database("apidb1"));
         QString expression;
-        expression = "SELECT DISTINCT user FROM Posts p WHERE p.forum=" +quote+ forum + quote+ str_since + str_order + str_limit + ";";
+        expression = "SELECT distinct u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u JOIN Posts p on u.email = p.user WHERE p.forum=" + quote + forum + quote +str_since+str_order + str_limit + ";";
+        //str_since + str_order + str_limit + ";";
 
         bool ok = query.exec(expression);
 
@@ -353,18 +354,66 @@ protected:
 
         if (ok) {
             while (query.next()) {
-                QString name = query.value(0).toString();
-                QJsonObject jsonObj = UserInfo::getFullUserInfo(name, isThreadExist); // assume this has been populated with Json data
-                arrayOfThreads << jsonObj;
-            }
+                //                //                QString name = query.value(0).toString();
+                //                //                QJsonObject jsonObj = UserInfo::getFullUserInfo(name, isThreadExist); // assume this has been populated with Json data
+                //                //                arrayOfThreads << jsonObj;
+
+                //                //                query.prepare("SELECT * FROM Users WHERE email=:user;");
+                //                //                query.bindValue(":user", email);
+                //                QSqlQuery query2(QSqlDatabase::database("apidb1"));
+                //                QString expression2;
+                //                expression2 = "SELECT * FROM Users WHERE email=" + quote + query.value(0).toString() + quote + str_since + ";";
+                //                bool ok2= query2.exec(expression2);
+                //                //   QJsonObject jsonArray;
+                //                std::cout<<"_ISOK"<<ok<<ok2<<"_H";
+                //                std::cout << query2.lastQuery().toStdString() << "USERLIST";
+                //                while (query2.next()) {
+                QString strGoodReply = Source::getUserTemplate();
+                QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
+                //  QJsonObject objectResponce = jsonResponse.object();
+                QJsonObject jsonArray = jsonResponse.object();
+                jsonArray["id"] = query.value(0).toInt();
+                jsonArray["email"] = query.value(1).toString();
+                if (query.value(2).isNull())
+
+                    jsonArray["username"] = QJsonValue::Null;
+                else
+                    jsonArray["username"] = query.value(2).toString();
+
+                jsonArray["about"] = query.value(3).toString();
+                if (jsonArray["about"] == "")
+                    jsonArray["about"] = QJsonValue::Null;
+
+                jsonArray["name"] = query.value(4).toString();
+                if (jsonArray["name"] == "")
+                    jsonArray["name"] = QJsonValue::Null;
+
+                jsonArray["isAnonymous"] = query.value(5).toBool();
+
+                UserInsideInfo userInsideInfo;
+
+                QJsonArray followers = userInsideInfo.getFollowers(jsonArray["email"].toString());
+                QJsonArray followee = userInsideInfo.getFollowee(jsonArray["email"].toString());
+                //   QJsonObject jsonArray;
+                jsonArray["following"] = followee;
+                jsonArray["followers"] = followers;
+
+                QJsonArray subscriptions = userInsideInfo.getSubscriptions(jsonArray["email"].toString());
+                jsonArray["subscriptions"] = subscriptions;
+                std::cout << query.lastQuery().toStdString() << "allah";
+
+                arrayOfThreads << jsonArray;
+
         }
-        objectResponce["response"] = arrayOfThreads;
-       std::cout<<query.lastQuery().toStdString()<<"USERLIST";
-        prepareOutput();
-
-        response.setStatus(200);
-
-        response.out() << output;
     }
-};
+    objectResponce["response"] = arrayOfThreads;
+     std::cout << query.lastQuery().toStdString() << "USERLIST";
+    prepareOutput();
+
+    response.setStatus(200);
+
+    response.out() << output;
+}
+}
+;
 #endif // FORUM_H

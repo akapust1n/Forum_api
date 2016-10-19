@@ -30,7 +30,7 @@ public:
                          "\"isAnonymous\": false,"
                          "\"name\": \"John\","
                          "\"subscriptions\": [],"
-                         "\"username\": \"user1\""
+                         "\"username\": \"tt\""
                          " }";
         /* QString answer = "{"
            "\"code\": 0,"
@@ -48,7 +48,7 @@ public:
                 "\"name\": \"John\","
                 "\"subscriptions\": ["
                 "],"
-                "\"username\": \"user1\""
+                "\"username\": \"tt\""
            " }"
         "}";*/
         return answer;
