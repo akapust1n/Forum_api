@@ -44,6 +44,7 @@ protected:
         bool ok = query.exec();
         bool o2 = QSqlDatabase::database(conName).commit();
 
+
         handleResponse();
         //проверка на код и всё такое тут должны быть
         objectResponce["code"] = ok ? 0 : 5;
@@ -55,6 +56,7 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
     }
 };
 
@@ -205,6 +207,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -308,6 +312,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -418,6 +424,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 #endif // FORUM_H

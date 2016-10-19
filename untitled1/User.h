@@ -66,6 +66,8 @@ protected:
 
         response.out() << output;
         //std::cout << output << "Tut";
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -138,6 +140,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -178,6 +182,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 class UserUpdateProfile : public Wt::WResource, public HandleRequestBase {
@@ -219,6 +225,8 @@ protected:
 
         response.out() << output;
         // std::cout << "DATA____" << data.toStdString();
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -283,6 +291,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -347,6 +357,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -411,6 +423,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 

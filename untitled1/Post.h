@@ -124,6 +124,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
         // std::cout << output << "Tat";
     }
 };
@@ -210,6 +212,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -238,6 +242,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -269,6 +275,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -301,6 +309,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -370,6 +380,8 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 

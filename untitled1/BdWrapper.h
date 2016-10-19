@@ -3,22 +3,29 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <iostream>
-#define NUM_CON 10
+#define NUM_CON 1000000
 
 class BdWrapper {
 public:
-    static bool createConnection()
+    static bool createConnection(QString name)
     {
 
-            QSqlDatabase  db = QSqlDatabase::addDatabase("QMYSQL", "apidb1");
+        QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL", name);
         db.setHostName("localhost");
         db.setDatabaseName("forum");
         db.setUserName("root");
         db.setPassword("1111");
         bool ok = db.open();
 
-
         return ok;
+    }
+    static void closeConnection(QString name)
+    {
+
+        QSqlDatabase::removeDatabase(name);
+
+
+
     }
     static bool execute_sql(QString arg)
     {
@@ -28,22 +35,20 @@ public:
         return result;
     }
 
-    static QString getConnection(bool info = 0)
+    static QString getConnection()
     {
         static int con = 1;
-        if (!info) {
-            con = con % NUM_CON;
-            con += 1;
-        }
-        QString result = "apidb";
-        result += QString::number(con);
+        if (con > NUM_CON)
+            con = 1;
+        else
+            con++;
+        QString name = QString::number(con);
+        createConnection(name);  //тут можно кинуть экзепшн
 
-        return result;
+        return name;
     }
 
     //bool create
-
-
 };
 
 #endif // CONNECTION_H

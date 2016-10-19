@@ -228,6 +228,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -265,6 +267,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -300,6 +304,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -335,6 +341,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -370,6 +378,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -406,6 +416,8 @@ protected:
         response.setStatus(200);
         response.out() << output;
         std::cout<<output<<" output";
+        BdWrapper::closeConnection(conName);
+
     }
 };
 class ThreadList : public Wt::WResource, public HandleRequestList {
@@ -477,6 +489,8 @@ QString conName = BdWrapper::getConnection();
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 
@@ -540,6 +554,8 @@ protected:
                 str_sort = " AND (path <" + quote + tmp + quote + ")";
                 str_sort += " ORDER BY path ASC";
                 str_limit = " ";
+                BdWrapper::closeConnection(conName);
+
             }
 
             if (order == "desc" || order == " ") {
@@ -556,6 +572,8 @@ protected:
                 str_sort = " AND (path >" + quote + tmp + quote + ")";
                 str_sort += " order by path desc";
                 str_limit = " ";
+                BdWrapper::closeConnection(conName);
+
             }
             str_order = " ";
         }
@@ -570,6 +588,7 @@ protected:
         handleResponse();
         QJsonArray arrayOfPosts;
         bool isPostExist = true; // заглушка
+        BdWrapper::closeConnection(conName);
 
         if (ok) {
             while (query.next()) {
