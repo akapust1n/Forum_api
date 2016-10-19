@@ -1,5 +1,7 @@
 #ifndef SOURCE_H
 #define SOURCE_H
+#include <QString>
+
 class Source {
 public:
     static QString getAnswerTemplate()

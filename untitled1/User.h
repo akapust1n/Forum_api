@@ -23,6 +23,7 @@
 #include <Wt/WServer>
 #include <iostream>
 
+
 class UserCreate : public Wt::WResource, public HandleRequestBase {
 public:
     virtual ~UserCreate()
@@ -33,16 +34,21 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        handlePostParams(request);
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        handlePostParams(request);
+        QString conName = BdWrapper::getConnection();
+
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Users (username, about, name, email, isAnonymous) VALUES (:username, :about, :name, :email, :isAnonymous);");
         query.bindValue(":username", objectRequest["username"].toString());
         query.bindValue(":about", objectRequest["about"].toString());
         query.bindValue(":name", objectRequest["name"].toString());
         query.bindValue(":email", objectRequest["email"].toString());
         query.bindValue(":isAnonymous", objectRequest["isAnonymous"].toBool());
-        bool ok = query.exec();
+         bool ok =query.exec();
+         QSqlDatabase::database(conName).commit();
+
 
         handleResponse();
         objectResponce["code"] = ok ? 0 : 5;
@@ -59,7 +65,7 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
-        std::cout << output << "Tut";
+        //std::cout << output << "Tut";
     }
 };
 
@@ -108,13 +114,15 @@ protected:
         handlePostParams(request);
 
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Followers (follower, followee) VALUES (:follower, :followee);");
         query.bindValue(":follower", objectRequest["follower"].toString());
         query.bindValue(":followee", objectRequest["followee"].toString());
         query.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = false;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
@@ -146,13 +154,15 @@ protected:
         handlePostParams(request);
 
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("DELETE FROM Followers WHERE follower=:follower AND followee=:followee;");
         query.bindValue(":follower", objectRequest["follower"].toString());
         query.bindValue(":followee", objectRequest["followee"].toString());
         query.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = false;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
@@ -183,15 +193,17 @@ protected:
         handlePostParams(request);
 
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
+        QString conName = BdWrapper::getConnection();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        bool test = QSqlDatabase::database(conName).transaction();
+
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Users SET about=:about, name=:name WHERE email=:user;");
         query.bindValue(":user", objectRequest["user"].toString());
         query.bindValue(":about", objectRequest["about"].toString());
         query.bindValue(":name", objectRequest["name"].toString());
         query.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = true;
         QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["user"].toString(), isUserExist);
@@ -245,8 +257,8 @@ protected:
             str_order = " ORDER BY name asc ";
         else
             str_order = " ORDER BY name desc";
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.follower WHERE f.followee=" + quote + user + quote + str_since + str_order + str_limit + ";";
         bool ok = query.exec(expression);
@@ -309,8 +321,8 @@ protected:
             str_order = " ORDER BY name asc";
         else
             str_order = " ORDER BY name desc";
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.followee WHERE f.follower=" + quote + user + quote + str_since + str_order + str_limit + ";";
         bool ok = query.exec(expression);
@@ -372,8 +384,9 @@ protected:
             str_order = " ORDER by date asc ";
         else
             str_order = " ORDER by date desc ";
+        QString conName = BdWrapper::getConnection();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         expression = "SELECT p.id FROM Posts p WHERE p.user=" + quote + user + quote + str_since  + str_order + str_limit + ";";
 

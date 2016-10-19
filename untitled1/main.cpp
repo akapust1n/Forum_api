@@ -13,7 +13,7 @@ int main(int argc, char** argv)
         WServer server(argv[0]);
         server.setServerConfiguration(argc, argv); //создаем сервер
         BdWrapper connection;
-       bool ok= connection.createConnection(); //НУЖНО ПЕРЕДЕЛАТЬ В ПУЛ КОННЕКТОВ
+       bool ok= connection.createConnection(); //тут будет пул коннектов
                                   //роутер
         Router router;
         router.route(server);
@@ -27,7 +27,12 @@ int main(int argc, char** argv)
         }
     } catch (WServer::Exception& e) {
         std::cerr << e.what() << std::endl;
+        std::cout<<"why2";
     } catch (std::exception& e) {
         std::cerr << "exception: " << e.what() << std::endl;
+    }
+    catch(...)
+    {
+        std::cout<<"why";
     }
 }

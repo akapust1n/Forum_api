@@ -21,6 +21,7 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include <BdWrapper.h>
 
 class HandleRequestBase {
 protected:

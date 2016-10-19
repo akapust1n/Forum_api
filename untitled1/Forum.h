@@ -2,6 +2,7 @@
 #define FORUM_H
 #include "ForumInfo.h"
 #include "Trash.h"
+#include <BdWrapper.h>
 #include <HandleTemplates.h>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -32,13 +33,16 @@ protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
         handlePostParams(request);
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Forums (name, short_name, user) VALUES (:name, :short_name, :user);");
         query.bindValue(":name", objectRequest["name"].toString());
         query.bindValue(":short_name", objectRequest["short_name"].toString());
         query.bindValue(":user", objectRequest["user"].toString());
         bool ok = query.exec();
+        bool o2 = QSqlDatabase::database(conName).commit();
 
         handleResponse();
         //проверка на код и всё такое тут должны быть
@@ -148,7 +152,8 @@ protected:
         handleResponse();
         QJsonArray arrayOfPosts;
         QString expression = "SELECT id, user, message,forum,thread_id, parent, date,likes, dislikes,isApproved,isHighlighted,isEdited,isSpam,isDeleted FROM Posts p WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         bool ok = query.exec(expression);
 
         while (query.next()) {
@@ -257,7 +262,8 @@ protected:
         handleResponse();
         QJsonArray arrayOfPosts;
         QString expression = "SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads p WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         bool ok = query.exec(expression);
 
         while (query.next()) {
@@ -340,10 +346,10 @@ protected:
             str_order = " ORDER BY u.name asc ";
         else
             str_order = " ORDER BY u.name desc ";
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
-        expression = "SELECT distinct u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u JOIN Posts p on u.email = p.user WHERE p.forum=" + quote + forum + quote +str_since+str_order + str_limit + ";";
+        expression = "SELECT distinct u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u JOIN Posts p on u.email = p.user WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
         //str_since + str_order + str_limit + ";";
 
         bool ok = query.exec(expression);
@@ -360,7 +366,7 @@ protected:
 
                 //                //                query.prepare("SELECT * FROM Users WHERE email=:user;");
                 //                //                query.bindValue(":user", email);
-                //                QSqlQuery query2(QSqlDatabase::database("apidb1"));
+                //                QSqlQuery query2(QSqlDatabase::database(conName)));
                 //                QString expression2;
                 //                expression2 = "SELECT * FROM Users WHERE email=" + quote + query.value(0).toString() + quote + str_since + ";";
                 //                bool ok2= query2.exec(expression2);
@@ -403,17 +409,15 @@ protected:
                 std::cout << query.lastQuery().toStdString() << "allah";
 
                 arrayOfThreads << jsonArray;
-
+            }
         }
+        objectResponce["response"] = arrayOfThreads;
+        std::cout << query.lastQuery().toStdString() << "USERLIST";
+        prepareOutput();
+
+        response.setStatus(200);
+
+        response.out() << output;
     }
-    objectResponce["response"] = arrayOfThreads;
-     std::cout << query.lastQuery().toStdString() << "USERLIST";
-    prepareOutput();
-
-    response.setStatus(200);
-
-    response.out() << output;
-}
-}
-;
+};
 #endif // FORUM_H

@@ -6,6 +6,7 @@
 #include <Wt/Http/Response>
 #include <boost/any.hpp>
 #include <string>
+#include <BdWrapper.h>
 
 class LineAnalyze {
 public:

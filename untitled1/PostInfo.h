@@ -20,6 +20,7 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <qvector.h>
+#include <BdWrapper.h>
 
 #define BASE 36
 
@@ -27,7 +28,7 @@ class PostInfo {
 public:
     static int countPosts(int thread_id)
     {
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT COUNT(*) FROM Posts WHERE thread_id=:id AND isDeleted=false;");
         query.bindValue(":id", thread_id);
         bool ok = query.exec();
@@ -44,7 +45,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT id, user, message,forum,thread_id, parent, date,likes, dislikes,isApproved,isHighlighted,isEdited,isSpam,isDeleted FROM Posts WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
@@ -93,7 +94,7 @@ public:
         QString result = "";
         QString path;
         if (parent_id != -1) {
-            QSqlQuery query(QSqlDatabase::database("apidb1"));
+            QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
             query.prepare("SELECT path,parent FROM Posts WHERE id = ? order by path;");
             query.bindValue(0, parent_id);
             // query.bindValue(1,thread_id);
@@ -106,7 +107,7 @@ public:
         //второй уровень вложенности
         //        if (parentParentId == 0) {
         if (path != " ") {
-            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+            QSqlQuery query2(QSqlDatabase::database(BdWrapper::getConnection()));
             query2.prepare("SELECT Count(path) FROM Posts WHERE (path LIKE ?) order by path ;");
             query2.bindValue(0, path + "_");
 
@@ -116,7 +117,7 @@ public:
             int value = temp.toInt(0, BASE) + 1;
             result = path + QString::number(value, BASE);
         } else {
-            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+            QSqlQuery query2(QSqlDatabase::database(BdWrapper::getConnection()));
             query2.prepare("SELECT Count(path) FROM Posts WHERE (path REGEXP \"^.$\") order by path ;");
             // query2.bindValue(0, "_");
 

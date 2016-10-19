@@ -21,11 +21,14 @@
 
 class UserInsideInfo {
 private:
+    QVector<QString> result;
+    QVector<int> result_int;
+
     //возвращает список подписчиков
     auto _getFollowers(QString folowee)
     {
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
-        QVector<QString> result; //плохо с точки зрения памяти и скорости
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+         result.clear(); //плохо с точки зрения памяти и скорости
         query.prepare("SELECT follower FROM Followers WHERE followee=:followee;");
         query.bindValue(":followee", folowee);
         bool ok = query.exec();
@@ -39,8 +42,8 @@ private:
     //возвращает список подписок
     auto _getFollowee(QString follower)
     {
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
-        QVector<QString> result; //плохо с точки зрения памяти и скорости
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+         result.clear();; //плохо с точки зрения памяти и скорости
         query.prepare("SELECT followee FROM Followers WHERE follower=:follower;");
         query.bindValue(":follower", follower);
         query.exec();
@@ -52,22 +55,26 @@ private:
     //список подписок на треды
     auto _getSubscriptions(QString user)
     {
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
-        QVector<int> result; //плохо с точки зрения памяти и скорости
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        result_int.clear(); //плохо с точки зрения памяти и скорости
         query.prepare("SELECT thread_id FROM Subscribers WHERE user=:user;");
         query.bindValue(":user", user);
         bool ok = query.exec();
         std::cout << query.lastQuery().toInt() << "ddd";
 
         while (query.next()) {
-            result.append(query.value(0).toInt());
+            result_int.append(query.value(0).toInt());
         };
         std::cout << "LEN_" << result.length();
 
-        return result;
+        return result_int;
     }
 
 public:
+     ~UserInsideInfo(){
+        result.clear();
+        result_int.clear();
+    }
     QJsonArray getFollowers(QString folowee)
     {
         auto temp = _getFollowers(folowee);
@@ -110,7 +117,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Users WHERE email=:user;");
         query.bindValue(":user", email);
         query.exec();
@@ -164,7 +171,7 @@ public:
     {
         QJsonObject jsonArray;
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT email FROM Users WHERE id=:id;");
         query.bindValue(":id", id);
         bool ok = query.exec();

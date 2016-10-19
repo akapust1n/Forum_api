@@ -9,6 +9,7 @@
 #include <Wt/Json/Serializer>
 #include <Wt/WResource>
 #include <Wt/WServer>
+#include <BdWrapper.h>
 
 class DbClear : public Wt::WResource {
 public:
@@ -31,9 +32,20 @@ protected:
 
         QString turn_on = "SET foreign_key_checks = 1;";
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
-        query.prepare(turn_off + qStr1 + qStr2 + qStr3 + qStr4 + qStr5 + qStr6 + turn_on);
-        bool ok = query.exec();
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
+        bool test = QSqlDatabase::database(BdWrapper::getConnection()).transaction();
+        query.exec(turn_off);
+        query.exec(qStr1);
+        query.exec(qStr2);
+        query.exec(qStr3);
+        query.exec(qStr4);
+        query.exec(qStr5);
+        query.exec(qStr6);
+        query.exec(turn_on);
+
+
+        bool ok = QSqlDatabase::database(BdWrapper::getConnection()).commit();
+
         Wt::Json::Object data;
 
         data["code"] = Wt::Json::Value(0);

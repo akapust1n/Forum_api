@@ -7,6 +7,7 @@
 #include <Thread.h>
 #include <Wt/WResource>
 #include <Wt/WServer>
+#include <BdWrapper.h>
 
 using namespace Wt;
 

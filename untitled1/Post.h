@@ -27,6 +27,7 @@
 #include <iostream>
 #include "ForumInfo.h"
 #include "ThreadInfo.h"
+#include <BdWrapper.h>
 
 class PostCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -59,13 +60,16 @@ protected:
         QString path;
         if (objectRequest["parent"] == QJsonValue::Null)
             path = "";
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
         query.bindValue(0, objectRequest["date"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
         query.bindValue(2, objectRequest["message"].toString());
         query.bindValue(3, objectRequest["user"].toString());
+
         // if (objectRequest["forum"] != QJsonValue::Null)
         query.bindValue(4, objectRequest["forum"].toString());
         //  else
@@ -87,6 +91,8 @@ protected:
 
         query.bindValue(11, path);
         bool ok = query.exec();
+        bool o2 = QSqlDatabase::database(conName).commit();
+
         auto tt = query.lastError().text();
 
         handleResponse();
@@ -96,7 +102,7 @@ protected:
 //            int last_id = query.lastInsertId().toInt();
 //            if (path==""){
 //            QString str_last_id = QString::number(last_id-1, BASE);
-//            QSqlQuery query2(QSqlDatabase::database("apidb1"));
+//            QSqlQuery query2(QSqlDatabase::database(conName)));
 //            query2.prepare("UPDATE Posts SET path=? WHERE id=?;");
 //            query2.bindValue(0, str_last_id);
 //            query2.bindValue(1, last_id);
@@ -191,7 +197,8 @@ protected:
 
         handlePostParams(request);
         handleResponse();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET isDeleted=true WHERE id=?;");
         query.bindValue(0, objectRequest["post"].toInt());
         bool ok = query.exec();
@@ -219,7 +226,8 @@ protected:
 
         handlePostParams(request);
         handleResponse();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET isDeleted=false WHERE id=?;");
         query.bindValue(0, objectRequest["post"].toInt());
         bool ok = query.exec();
@@ -246,8 +254,8 @@ protected:
 
         handlePostParams(request);
         bool isPostExist = false;
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET message=? WHERE id=?;");
         query.bindValue(0, objectRequest["message"].toString());
         query.bindValue(1, objectRequest["post"].toInt());
@@ -277,8 +285,8 @@ protected:
 
         handlePostParams(request);
         bool isPostExist = false;
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
         query.bindValue(0, (objectRequest["vote"].toInt() > 0 ? 1 : 0));
         query.bindValue(1, (objectRequest["vote"].toInt() > 0 ? 0 : 1));
@@ -333,8 +341,8 @@ protected:
             str_limit = " LIMIT " + limit;
         if (order != "")
             str_order = " ORDER BY p.date " + order;
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+       QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         if (!isForum) {
             expression = "SELECT p.id, p.date, p.dislikes, p.forum, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p JOIN Threads second ON second.id=p.thread_id WHERE second.id=" + threadOrForum + str_since + str_order + str_limit + ";";

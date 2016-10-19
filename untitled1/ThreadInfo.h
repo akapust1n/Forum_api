@@ -21,6 +21,7 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <qvector.h>
+#include <BdWrapper.h>
 
 class ThreadInfo {
 public:
@@ -30,7 +31,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
@@ -65,7 +66,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
@@ -104,7 +105,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Threads WHERE forum=:id;");
         query.bindValue(":id", forum);
         query.exec();

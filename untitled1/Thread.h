@@ -21,6 +21,7 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
+#include <BdWrapper.h>
 
 class ThreadCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -35,8 +36,10 @@ protected:
         handlePostParams(request);
         if (objectRequest["isDeleted"] == "")
             objectRequest["isDeleted"] = false;
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
         query.bindValue(0, objectRequest["forum"].toString());
         query.bindValue(1, objectRequest["title"].toString());
@@ -46,7 +49,8 @@ protected:
         query.bindValue(5, objectRequest["message"].toString());
         query.bindValue(6, objectRequest["slug"].toString());
         query.bindValue(7, objectRequest["isDeleted"].toBool());
-        bool ok = query.exec();
+        query.exec();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         handleResponse();
         if (ok) {
@@ -138,15 +142,16 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        bool test = QSqlDatabase::database("apidb1").transaction();
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
         handlePostParams(request);
         handleResponse();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET isClosed=true WHERE id=?;");
         query.bindValue(0, objectRequest["thread"].toInt());
         query.exec();
         query.clear();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         responseContent["thread"] = objectRequest["thread"];
         objectResponce["code"] = ok ? 0 : 1;
@@ -170,13 +175,14 @@ protected:
 
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
 
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET isClosed=false WHERE id=?;");
         query.bindValue(0, objectRequest["thread"].toInt());
         query.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         responseContent["thread"] = objectRequest["thread"];
         objectResponce["code"] = ok ? 0 : 1;
@@ -196,21 +202,23 @@ public:
     };
 
 protected:
+    //тут должен быть роллбек
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET isDeleted=true WHERE id=?;");
         query.bindValue(0, objectRequest["thread"].toInt());
         query.exec();
 
-        QSqlQuery query2(QSqlDatabase::database("apidb1"));
+        QSqlQuery query2(QSqlDatabase::database(conName));
         query2.prepare("UPDATE Posts SET isDeleted=true WHERE thread_id=?;");
         query2.bindValue(0, objectRequest["thread"].toInt());
         query2.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         responseContent["thread"] = objectRequest["thread"];
 
@@ -236,17 +244,18 @@ protected:
 
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET isDeleted=false WHERE id=?;");
         query.bindValue(0, objectRequest["thread"].toInt());
         query.exec();
 
-        QSqlQuery query2(QSqlDatabase::database("apidb1"));
+        QSqlQuery query2(QSqlDatabase::database(conName));
         query2.prepare("UPDATE Posts SET isDeleted=false WHERE thread_id=?;");
         query2.bindValue(0, objectRequest["thread"].toInt());
         query2.exec();
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
         std::cout << "Restore___" << ok << "__id__" << objectRequest["thread"].toInt();
 
         responseContent["thread"] = objectRequest["thread"];
@@ -271,8 +280,9 @@ protected:
     {
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET message=?, slug=? WHERE id=?;");
         query.bindValue(0, objectRequest["message"].toString());
         query.bindValue(1, objectRequest["slug"].toString());
@@ -280,7 +290,7 @@ protected:
 
         query.exec();
 
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
 
         objectResponce["code"] = ok ? 0 : 1;
@@ -305,8 +315,9 @@ protected:
     {
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Threads SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
         query.bindValue(0, objectRequest["vote"].toInt() > 0);
         query.bindValue(1, objectRequest["vote"].toInt() < 0);
@@ -314,7 +325,7 @@ protected:
 
         query.exec();
 
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
 
         objectResponce["code"] = ok ? 0 : 1;
@@ -339,15 +350,16 @@ protected:
     {
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Subscribers (user, thread_id) VALUES (?, ?);");
         query.bindValue(0, objectRequest["user"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
 
         query.exec();
 
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         responseContent["thread"] = objectRequest["thread"];
         responseContent["user"] = objectRequest["user"];
@@ -373,15 +385,16 @@ protected:
     {
         handlePostParams(request);
         handleResponse();
-        bool test = QSqlDatabase::database("apidb1").transaction();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        bool test = QSqlDatabase::database(conName).transaction();
+        QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("DELETE FROM Subscribers WHERE user=? AND thread_id=?;");
         query.bindValue(0, objectRequest["user"].toString());
         query.bindValue(1, objectRequest["thread"].toInt());
 
         query.exec();
 
-        bool ok = QSqlDatabase::database("apidb1").commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         responseContent["thread"] = objectRequest["thread"];
         responseContent["user"] = objectRequest["user"];
@@ -434,8 +447,8 @@ protected:
             str_order = " ORDER BY date asc ";
         else
             str_order = " ORDER BY date desc ";
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         if (!isForum) {
             expression = "SELECT * FROM Threads WHERE user=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";
@@ -514,7 +527,8 @@ protected:
         }
         if (sort == "parent_tree") {
             if (order == "asc") {
-                QSqlQuery query2(QSqlDatabase::database("apidb1"));
+                QString conName = BdWrapper::getConnection();
+                QSqlQuery query2(QSqlDatabase::database(conName));
                 QString expression = "SELECT Min(path) FROM Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + ";";
                 query2.exec(expression);
                 query2.next();
@@ -530,7 +544,8 @@ protected:
 
             if (order == "desc" || order == " ") {
                 //очень грустный момент
-                QSqlQuery query2(QSqlDatabase::database("apidb1"));
+                QString conName = BdWrapper::getConnection();
+                QSqlQuery query2(QSqlDatabase::database(conName));
                 QString expression = "SELECT Count(path) FROM Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + ";";
                 query2.exec(expression);
                 query2.next();
@@ -545,8 +560,8 @@ protected:
             str_order = " ";
         }
         // str_order = "";
-
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         expression = "SELECT p.date, p.dislikes, p.forum, p.id, p.isApproved, p.isDeleted, p.isEdited, p.isHighlighted, p.isSpam, p.likes, p.message, p.thread_id, p.user, p.parent, p.likes-p.dislikes as points FROM Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + str_sort + str_order + str_limit + ";";
 

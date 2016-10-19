@@ -22,6 +22,7 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <qvector.h>
+#include <BdWrapper.h>
 
 class ForumInfo {
 public:
@@ -31,7 +32,8 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QString one ="1";
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Forums WHERE short_name=:name;");
         query.bindValue(":name", name);
         query.exec();
@@ -59,7 +61,7 @@ public:
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
         //  QJsonObject objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
-        QSqlQuery query(QSqlDatabase::database("apidb1"));
+        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Forums WHERE short_name=:name;");
         query.bindValue(":name", name);
         query.exec();
