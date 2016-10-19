@@ -33,13 +33,14 @@ public:
         query.prepare("SELECT COUNT(*) FROM Posts WHERE thread_id=:id AND isDeleted=false;");
         query.bindValue(":id", thread_id);
         bool ok = query.exec();
-        BdWrapper::closeConnection(conName);
 
 
         int result = 0;
         if (query.next())
             result = query.value(0).toInt();
         std::cout << "RESULT_____" << result << std::endl;
+        BdWrapper::closeConnection(conName);
+
         return result;
     }
     static QJsonObject getFullPostInfo(int id, bool& isPostExist)
@@ -53,7 +54,6 @@ public:
         query.prepare("SELECT id, user, message,forum,thread_id, parent, date,likes, dislikes,isApproved,isHighlighted,isEdited,isSpam,isDeleted FROM Posts WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
-        BdWrapper::closeConnection(conName);
 
         bool ok = query.next();
         //   QJsonObject jsonArray;
@@ -89,6 +89,7 @@ public:
         } else {
             isPostExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
@@ -106,10 +107,11 @@ public:
             query.bindValue(0, parent_id);
             // query.bindValue(1,thread_id);
             bool ok = query.exec();
-            BdWrapper::closeConnection(conName);
 
             query.next();
             path = query.value(0).toString();
+            BdWrapper::closeConnection(conName);
+
         } else
             path = " ";
         std::cout << "PARENT_" << parent_id << "_____" << path.toStdString();
@@ -122,12 +124,13 @@ public:
             query2.bindValue(0, path + "_");
 
             bool ok2 = query2.exec();
-            BdWrapper::closeConnection(conName);
 
             query2.next();
             QString temp = query2.value(0).toString();
             int value = temp.toInt(0, BASE) + 1;
             result = path + QString::number(value, BASE);
+            BdWrapper::closeConnection(conName);
+
         } else {
             QString conName = BdWrapper::getConnection();
             QSqlQuery query2(QSqlDatabase::database(conName));
@@ -136,12 +139,13 @@ public:
             // query2.bindValue(0, "_");
 
             bool ok2 = query2.exec();
-            BdWrapper::closeConnection(conName);
 
             query2.next();
             QString temp = QString::number(query2.value(0).toInt(), BASE);
             int value = temp.toInt(0, BASE) + 1;
             result = QString::number(value, BASE);
+            BdWrapper::closeConnection(conName);
+
         }
 
         return result;

@@ -3,6 +3,7 @@
 #include "ThreadInfo.h"
 #include "Trash.h"
 #include "User.h"
+#include <BdWrapper.h>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -21,7 +22,6 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include <BdWrapper.h>
 
 class ThreadCreate : public Wt::WResource, public HandleRequestBase {
 public:
@@ -123,8 +123,8 @@ protected:
         objectResponce["response"] = responseContent;
 
         objectResponce["code"] = isThreadExist ? 0 : 1;
-        if(error)
-            objectResponce["code"] =3;
+        if (error)
+            objectResponce["code"] = 3;
 
         prepareOutput();
         response.setStatus(200);
@@ -160,6 +160,7 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
+        BdWrapper::closeConnection(conName);
     }
 };
 class ThreadOpen : public Wt::WResource, public HandleRequestBase {
@@ -229,7 +230,6 @@ protected:
         response.setStatus(200);
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -268,7 +268,6 @@ protected:
         response.setStatus(200);
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -296,16 +295,14 @@ protected:
 
         bool ok = QSqlDatabase::database(conName).commit();
 
-
         objectResponce["code"] = ok ? 0 : 1;
-        bool tt =true;
+        bool tt = true;
         objectResponce["response"] = ThreadInfo::getFullThreadInfo(objectRequest["thread"].toInt(), tt);
 
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -333,16 +330,15 @@ protected:
 
         bool ok = QSqlDatabase::database(conName).commit();
 
-
         objectResponce["code"] = ok ? 0 : 1;
-        bool tt =true;
-        objectResponce["response"] = ThreadInfo::getFullThreadInfo(objectRequest["thread"].toInt(), tt);;
+        bool tt = true;
+        objectResponce["response"] = ThreadInfo::getFullThreadInfo(objectRequest["thread"].toInt(), tt);
+        ;
 
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -379,7 +375,6 @@ protected:
         response.setStatus(200);
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -415,9 +410,8 @@ protected:
         prepareOutput();
         response.setStatus(200);
         response.out() << output;
-        std::cout<<output<<" output";
+        std::cout << output << " output";
         BdWrapper::closeConnection(conName);
-
     }
 };
 class ThreadList : public Wt::WResource, public HandleRequestList {
@@ -459,7 +453,7 @@ protected:
             str_order = " ORDER BY date asc ";
         else
             str_order = " ORDER BY date desc ";
-QString conName = BdWrapper::getConnection();
+        QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         if (!isForum) {
@@ -469,7 +463,7 @@ QString conName = BdWrapper::getConnection();
             expression = "SELECT * FROM Threads WHERE forum=" + quote + userOrForum + quote + str_since + str_order + str_limit + ";";
         }
         bool ok = query.exec(expression);
-       // std::cout << query.lastQuery().toStdString() << "hh_";
+        // std::cout << query.lastQuery().toStdString() << "hh_";
 
         handleResponse();
         QJsonArray arrayOfThreads;
@@ -490,7 +484,6 @@ QString conName = BdWrapper::getConnection();
 
         response.out() << output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -555,7 +548,6 @@ protected:
                 str_sort += " ORDER BY path ASC";
                 str_limit = " ";
                 BdWrapper::closeConnection(conName);
-
             }
 
             if (order == "desc" || order == " ") {
@@ -573,7 +565,6 @@ protected:
                 str_sort += " order by path desc";
                 str_limit = " ";
                 BdWrapper::closeConnection(conName);
-
             }
             str_order = " ";
         }
@@ -588,7 +579,6 @@ protected:
         handleResponse();
         QJsonArray arrayOfPosts;
         bool isPostExist = true; // заглушка
-        BdWrapper::closeConnection(conName);
 
         if (ok) {
             while (query.next()) {
@@ -605,6 +595,7 @@ protected:
         response.setStatus(200);
 
         response.out() << output;
+        BdWrapper::closeConnection(conName);
     }
 };
 #endif // THREAD_H

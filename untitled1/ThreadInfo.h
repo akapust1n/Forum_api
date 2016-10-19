@@ -2,6 +2,7 @@
 #define THREADINFO_H
 #include "PostInfo.h"
 #include "Trash.h"
+#include <BdWrapper.h>
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -21,7 +22,6 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <qvector.h>
-#include <BdWrapper.h>
 
 class ThreadInfo {
 public:
@@ -37,7 +37,6 @@ public:
         query.prepare("SELECT * FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
-        BdWrapper::closeConnection(conName);
 
         bool ok = query.next();
         //   QJsonObject jsonArray;
@@ -61,6 +60,7 @@ public:
         } else {
             isThreadExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
@@ -75,7 +75,6 @@ public:
         query.prepare("SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads WHERE id=:id;");
         query.bindValue(":id", id);
         query.exec();
-        BdWrapper::closeConnection(conName);
 
         bool ok = query.next();
         //   QJsonObject jsonArray;
@@ -102,6 +101,7 @@ public:
         } else {
             isThreadExist = false;
         }
+        BdWrapper::closeConnection(conName);
 
         return jsonArray;
     }
