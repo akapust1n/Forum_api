@@ -4,6 +4,8 @@ CONFIG -= app_bundle
 CONFIG += qt
 QT += sql
 CONFIG += c++14
+QMAKE_CXXFLAGS += -std=c++1y
+
 
 SOURCES += main.cpp
 

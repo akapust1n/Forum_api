@@ -50,8 +50,9 @@ protected:
     virtual void prepareOutput()
     {
         QJsonDocument doc(objectResponce);
-        QByteArray data = doc.toJson();
-        output = data.toStdString();
+        const QByteArray data = doc.toJson();
+        QString temp(data);
+        output = temp.toStdString();         //ДЛЯ QT 5.3
     }
 };
 class HandleRequestList : public HandleRequestBase {
