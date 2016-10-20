@@ -22,7 +22,7 @@
 #include <iostream>
 #include <istream>
 
-class ForumCreate : public Wt::WResource, public HandleRequestBase {
+class ForumCreate : public Wt::WResource {
 public:
     virtual ~ForumCreate()
     {
@@ -32,35 +32,37 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        handlePostParams(request);
+        HandleRequestBase hR;
+
+        hR.handlePostParams(request);
         QString conName = BdWrapper::getConnection();
         bool test = QSqlDatabase::database(conName).transaction();
 
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Forums (name, short_name, user) VALUES (:name, :short_name, :user);");
-        query.bindValue(":name", objectRequest["name"].toString());
-        query.bindValue(":short_name", objectRequest["short_name"].toString());
-        query.bindValue(":user", objectRequest["user"].toString());
+        query.bindValue(":name", hR.objectRequest["name"].toString());
+        query.bindValue(":short_name", hR.objectRequest["short_name"].toString());
+        query.bindValue(":user", hR.objectRequest["user"].toString());
         bool ok = query.exec();
         bool o2 = QSqlDatabase::database(conName).commit();
 
 
-        handleResponse();
+        hR.handleResponse();
         //проверка на код и всё такое тут должны быть
-        objectResponce["code"] = ok ? 0 : 5;
+        hR.objectResponce["code"] = ok ? 0 : 5;
         bool isForumExist = true;
-        objectResponce["response"] = ForumInfo::getForumCreateInfo(objectRequest["short_name"].toString(), isForumExist);
+        hR.objectResponce["response"] = ForumInfo::getForumCreateInfo(hR.objectRequest["short_name"].toString(), isForumExist);
 
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
     }
 };
 
-class ForumDetails : public Wt::WResource, public HandleRequestBase {
+class ForumDetails : public Wt::WResource {
 public:
     virtual ~ForumDetails()
     {
@@ -70,6 +72,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestBase hR;
         QString related;
         related = related.fromStdString(request.getParameter("related") ? *request.getParameter("related") : " ");
         QString short_name;
@@ -79,25 +82,25 @@ protected:
 
         bool isForumExist = false;
 
-        handleResponse();
+        hR.handleResponse();
         if (related != " ") {
-            responseContent = ForumInfo::getFullForumInfo(short_name, isForumExist);
+            hR.responseContent = ForumInfo::getFullForumInfo(short_name, isForumExist);
         } else {
-            responseContent = ForumInfo::getForumCreateInfo(short_name, isForumExist);
+            hR.responseContent = ForumInfo::getForumCreateInfo(short_name, isForumExist);
         }
 
-        objectResponce["response"] = responseContent;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        objectResponce["code"] = isForumExist ? 0 : 1;
+        hR.objectResponce["code"] = isForumExist ? 0 : 1;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
     };
 };
 
-class ForumListPosts : public Wt::WResource, public HandleRequestList {
+class ForumListPosts : public Wt::WResource {
 public:
     virtual ~ForumListPosts()
     {
@@ -107,6 +110,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+         HandleRequestBase hR;
         QString forum;
         forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
 
@@ -151,7 +155,7 @@ protected:
 
         // QString user;
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfPosts;
         QString expression = "SELECT id, user, message,forum,thread_id, parent, date,likes, dislikes,isApproved,isHighlighted,isEdited,isSpam,isDeleted FROM Posts p WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
         QString conName = BdWrapper::getConnection();
@@ -199,20 +203,20 @@ protected:
             arrayOfPosts << jsonArray;
         }
         std::cout << query.lastQuery().toStdString() << "QUERY";
-        objectResponce["response"] = arrayOfPosts;
+        hR.objectResponce["response"] = arrayOfPosts;
 
-        objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["code"] = ok ? 0 : 1;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class ForumListThreads : public Wt::WResource, public HandleRequestList {
+class ForumListThreads : public Wt::WResource{
 public:
     virtual ~ForumListThreads()
     {
@@ -222,6 +226,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList hR;
         QString forum;
         forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
 
@@ -263,7 +268,7 @@ protected:
 
         // QString user;
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfPosts;
         QString expression = "SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads p WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
         QString conName = BdWrapper::getConnection();
@@ -273,7 +278,7 @@ protected:
         while (query.next()) {
             QString strGoodReply = Source::getFullThreadTemplate();
             QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-            //  QJsonObject objectResponce = jsonResponse.object();
+            //  QJsonObject hR.objectResponce = jsonResponse.object();
             QJsonObject jsonArray = jsonResponse.object();
 
             //   QJsonObject jsonArray;
@@ -304,20 +309,20 @@ protected:
             arrayOfPosts << jsonArray;
         }
         std::cout << query.lastQuery().toStdString() << "QUERY";
-        objectResponce["response"] = arrayOfPosts;
+        hR.objectResponce["response"] = arrayOfPosts;
 
-        objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["code"] = ok ? 0 : 1;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class ForumListUsers : public Wt::WResource, public HandleRequestList {
+class ForumListUsers : public Wt::WResource{
 public:
     virtual ~ForumListUsers()
     {
@@ -327,6 +332,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList  hR;
         QString forum;
         forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : " ");
 
@@ -360,7 +366,7 @@ protected:
 
         bool ok = query.exec(expression);
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfThreads;
         bool isThreadExist = true; // заглушка
 
@@ -382,7 +388,7 @@ protected:
                 //                while (query2.next()) {
                 QString strGoodReply = Source::getUserTemplate();
                 QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-                //  QJsonObject objectResponce = jsonResponse.object();
+                //  QJsonObject hR.objectResponce = jsonResponse.object();
                 QJsonObject jsonArray = jsonResponse.object();
                 jsonArray["id"] = query.value(0).toInt();
                 jsonArray["email"] = query.value(1).toString();
@@ -417,13 +423,13 @@ protected:
                 arrayOfThreads << jsonArray;
             }
         }
-        objectResponce["response"] = arrayOfThreads;
+        hR.objectResponce["response"] = arrayOfThreads;
         std::cout << query.lastQuery().toStdString() << "USERLIST";
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }

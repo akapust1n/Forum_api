@@ -29,7 +29,7 @@
 #include "ThreadInfo.h"
 #include <BdWrapper.h>
 
-class PostCreate : public Wt::WResource, public HandleRequestBase {
+class PostCreate : public Wt::WResource{
 public:
     virtual ~PostCreate()
     {
@@ -39,55 +39,56 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        handlePostParams(request);
-        if (objectRequest["isDeleted"] == "")
-            objectRequest["isDeleted"] = false;
+        HandleRequestBase hR;
+        hR.handlePostParams(request);
+        if (hR.objectRequest["isDeleted"] == "")
+            hR.objectRequest["isDeleted"] = false;
 
-        if (objectRequest["parent"] == "")
-            objectRequest["parent"] = false;
+        if (hR.objectRequest["parent"] == "")
+            hR.objectRequest["parent"] = false;
 
-        if (objectRequest["isApproved"] == "")
-            objectRequest["isApproved"] = false;
+        if (hR.objectRequest["isApproved"] == "")
+            hR.objectRequest["isApproved"] = false;
 
-        if (objectRequest["isHighlighted"] == "")
-            objectRequest["isHighlighted"] = false;
+        if (hR.objectRequest["isHighlighted"] == "")
+            hR.objectRequest["isHighlighted"] = false;
 
-        if (objectRequest["isEdited"] == "")
-            objectRequest["isEdited"] = true;
+        if (hR.objectRequest["isEdited"] == "")
+            hR.objectRequest["isEdited"] = true;
 
-        if (objectRequest["isSpam"] == "")
-            objectRequest["isSpam"] = false;
+        if (hR.objectRequest["isSpam"] == "")
+            hR.objectRequest["isSpam"] = false;
         QString path;
-        if (objectRequest["parent"] == QJsonValue::Null)
+        if (hR.objectRequest["parent"] == QJsonValue::Null)
             path = "";
         QString conName = BdWrapper::getConnection();
         bool test = QSqlDatabase::database(conName).transaction();
 
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
-        query.bindValue(0, objectRequest["date"].toString());
-        query.bindValue(1, objectRequest["thread"].toInt());
-        query.bindValue(2, objectRequest["message"].toString());
-        query.bindValue(3, objectRequest["user"].toString());
+        query.bindValue(0, hR.objectRequest["date"].toString());
+        query.bindValue(1, hR.objectRequest["thread"].toInt());
+        query.bindValue(2, hR.objectRequest["message"].toString());
+        query.bindValue(3, hR.objectRequest["user"].toString());
 
-        // if (objectRequest["forum"] != QJsonValue::Null)
-        query.bindValue(4, objectRequest["forum"].toString());
+        // if (hR.objectRequest["forum"] != QJsonValue::Null)
+        query.bindValue(4, hR.objectRequest["forum"].toString());
         //  else
         //     query.bindValue(4, QJsonValue::Null);
 
-        if (objectRequest["parent"] != QJsonValue::Null) {
-            query.bindValue(5, objectRequest["parent"].toInt());
-            path = PostInfo::getPath(objectRequest["parent"].toInt());
+        if (hR.objectRequest["parent"] != QJsonValue::Null) {
+            query.bindValue(5, hR.objectRequest["parent"].toInt());
+            path = PostInfo::getPath(hR.objectRequest["parent"].toInt());
 
         } else {
             path = PostInfo::getPath(-1);
             query.bindValue(5, QVariant::Int);
         }
-        query.bindValue(6, objectRequest["isApproved"].toBool());
-        query.bindValue(7, objectRequest["isHighlighted"].toBool());
-        query.bindValue(8, objectRequest["isEdited"].toBool());
-        query.bindValue(9, objectRequest["isSpam"].toBool());
-        query.bindValue(10, objectRequest["isDeleted"].toBool());
+        query.bindValue(6, hR.objectRequest["isApproved"].toBool());
+        query.bindValue(7, hR.objectRequest["isHighlighted"].toBool());
+        query.bindValue(8, hR.objectRequest["isEdited"].toBool());
+        query.bindValue(9, hR.objectRequest["isSpam"].toBool());
+        query.bindValue(10, hR.objectRequest["isDeleted"].toBool());
 
         query.bindValue(11, path);
         bool ok = query.exec();
@@ -95,7 +96,7 @@ protected:
 
         auto tt = query.lastError().text();
 
-        handleResponse();
+        hR.handleResponse();
         if (ok) {
 
             //обновляем path. ТУТ ДОЛЖНА БЫТЬ ТРАНЗАКЦИЯ(наверное)
@@ -110,27 +111,27 @@ protected:
 //           std::cout<<str_last_id.toStdString()<<"___"<<ok2<<"HAIl";}
 
 
-            objectResponce["code"] = 0;
+            hR.objectResponce["code"] = 0;
             bool isThreadExist = true; //костыль(
 
-            objectResponce["response"] = PostInfo::getFullPostInfo(query.lastInsertId().toInt(), isThreadExist);
+            hR.objectResponce["response"] = PostInfo::getFullPostInfo(query.lastInsertId().toInt(), isThreadExist);
         }
 
         else {
-            objectResponce["code"] = 4;
+            hR.objectResponce["code"] = 4;
         }
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
-        // std::cout << output << "Tat";
+        // std::cout << hR.output << "Tat";
     }
 };
 
-class PostDetails : public Wt::WResource, public HandleRequestBase {
+class PostDetails : public Wt::WResource {
 public:
     virtual ~PostDetails()
     {
@@ -140,6 +141,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestBase hR;
         QString post;
         post = post.fromStdString(request.getParameter("post") ? *request.getParameter("post") : "");
         int post_id = post.toInt();
@@ -161,32 +163,32 @@ protected:
 
         bool isPostExist = false;
 
-        handleResponse();
-        responseContent = PostInfo::getFullPostInfo(post_id, isPostExist);
+        hR.handleResponse();
+        hR.responseContent = PostInfo::getFullPostInfo(post_id, isPostExist);
 
         //  isUserExist костыль, надо как-то перерабыватывать функцию
         if (relatedArray[0] != "") {
-            responseContent["user"] = UserInfo::getFullUserInfo(responseContent["user"].toString(), isPostExist);
+            hR.responseContent["user"] = UserInfo::getFullUserInfo(hR.responseContent["user"].toString(), isPostExist);
         }
         if (relatedArray[1] != "") { //TODO
-             responseContent["forum"] = ForumInfo::getFullForumInfo(responseContent["forum"].toString(), isPostExist);
+             hR.responseContent["forum"] = ForumInfo::getFullForumInfo(hR.responseContent["forum"].toString(), isPostExist);
         }
         if (relatedArray[2] != "") { //TODO
-             responseContent["thread"] = ThreadInfo::getFullThreadInfo(responseContent["thread"].toInt(), isPostExist);
+             hR.responseContent["thread"] = ThreadInfo::getFullThreadInfo(hR.responseContent["thread"].toInt(), isPostExist);
         }
 
-        objectResponce["response"] = responseContent;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        objectResponce["code"] = isPostExist ? 0 : 1;
+        hR.objectResponce["code"] = isPostExist ? 0 : 1;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
     }
 };
 
-class PostRemove : public Wt::WResource, public HandleRequestBase {
+class PostRemove : public Wt::WResource{
 public:
     virtual ~PostRemove()
     {
@@ -196,28 +198,28 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-
-        handlePostParams(request);
-        handleResponse();
+      HandleRequestBase hR;
+        hR.handlePostParams(request);
+        hR.handleResponse();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET isDeleted=true WHERE id=?;");
-        query.bindValue(0, objectRequest["post"].toInt());
+        query.bindValue(0, hR.objectRequest["post"].toInt());
         bool ok = query.exec();
-        responseContent["post"] = objectRequest["post"];
+        hR.responseContent["post"] = hR.objectRequest["post"];
 
-        objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        hR.objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class PostRestore : public Wt::WResource, public HandleRequestBase {
+class PostRestore : public Wt::WResource {
 public:
     virtual ~PostRestore()
     {
@@ -227,21 +229,21 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-
-        handlePostParams(request);
-        handleResponse();
+       HandleRequestBase hR;
+        hR.handlePostParams(request);
+        hR.handleResponse();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET isDeleted=false WHERE id=?;");
-        query.bindValue(0, objectRequest["post"].toInt());
+        query.bindValue(0, hR.objectRequest["post"].toInt());
         bool ok = query.exec();
-        responseContent["post"] = objectRequest["post"];
-        objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        hR.responseContent["post"] = hR.objectRequest["post"];
+        hR.objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
@@ -257,24 +259,24 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-
-        handlePostParams(request);
+        HandleRequestBase hR;
+        hR.handlePostParams(request);
         bool isPostExist = false;
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET message=? WHERE id=?;");
-        query.bindValue(0, objectRequest["message"].toString());
-        query.bindValue(1, objectRequest["post"].toInt());
+        query.bindValue(0, hR.objectRequest["message"].toString());
+        query.bindValue(1, hR.objectRequest["post"].toInt());
         bool ok = query.exec();
-        handleResponse();
-        responseContent = PostInfo::getFullPostInfo(objectRequest["post"].toInt(), isPostExist);
-        responseContent["post"] = objectRequest["post"];
-        objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        hR.handleResponse();
+        hR.responseContent = PostInfo::getFullPostInfo(hR.objectRequest["post"].toInt(), isPostExist);
+        hR.responseContent["post"] = hR.objectRequest["post"];
+        hR.objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
@@ -290,31 +292,31 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-
-        handlePostParams(request);
+HandleRequestBase hR;
+        hR.handlePostParams(request);
         bool isPostExist = false;
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Posts SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
-        query.bindValue(0, (objectRequest["vote"].toInt() > 0 ? 1 : 0));
-        query.bindValue(1, (objectRequest["vote"].toInt() > 0 ? 0 : 1));
-        query.bindValue(2, objectRequest["post"].toInt());
+        query.bindValue(0, (hR.objectRequest["vote"].toInt() > 0 ? 1 : 0));
+        query.bindValue(1, (hR.objectRequest["vote"].toInt() > 0 ? 0 : 1));
+        query.bindValue(2, hR.objectRequest["post"].toInt());
         bool ok = query.exec();
-        handleResponse();
-        responseContent = PostInfo::getFullPostInfo(objectRequest["post"].toInt(), isPostExist);
-        responseContent["post"] = objectRequest["post"];
-        objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = responseContent;
+        hR.handleResponse();
+        hR.responseContent = PostInfo::getFullPostInfo(hR.objectRequest["post"].toInt(), isPostExist);
+        hR.responseContent["post"] = hR.objectRequest["post"];
+        hR.objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["response"] = hR.responseContent;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class PostList : public Wt::WResource, public HandleRequestList {
+class PostList : public Wt::WResource{
 public:
     virtual ~PostList()
     {
@@ -324,6 +326,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList  hR;
         QString threadOrForum;
         bool isForum = false;
         threadOrForum = threadOrForum.fromStdString(request.getParameter("thread") ? *request.getParameter("thread") : "");
@@ -362,7 +365,7 @@ protected:
         }
         bool ok = query.exec(expression);
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfPosts;
         bool isUserExist = true; // заглушка
 
@@ -373,13 +376,13 @@ protected:
                 arrayOfPosts << jsonObj;
             }
         }
-        objectResponce["response"] = arrayOfPosts;
+        hR.objectResponce["response"] = arrayOfPosts;
 
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }

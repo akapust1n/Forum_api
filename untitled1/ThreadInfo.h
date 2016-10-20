@@ -29,7 +29,7 @@ public:
     {
         QString strGoodReply = Source::getThreadCreateTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
@@ -68,7 +68,7 @@ public:
     {
         QString strGoodReply = Source::getFullThreadTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
@@ -110,7 +110,7 @@ public:
     {
         QString strGoodReply = Source::getThreadTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
         query.prepare("SELECT * FROM Threads WHERE forum=:id;");

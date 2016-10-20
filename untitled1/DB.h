@@ -31,9 +31,9 @@ protected:
         QString qStr6 = "TRUNCATE TABLE Subscribers;";
 
         QString turn_on = "SET foreign_key_checks = 1;";
-
-        QSqlQuery query(QSqlDatabase::database(BdWrapper::getConnection()));
-        bool test = QSqlDatabase::database(BdWrapper::getConnection()).transaction();
+        QString conName = BdWrapper::getConnection();
+        QSqlQuery query(QSqlDatabase::database(conName));
+        bool test = QSqlDatabase::database(conName).transaction();
         query.exec(turn_off);
         query.exec(qStr1);
         query.exec(qStr2);
@@ -44,7 +44,7 @@ protected:
         query.exec(turn_on);
 
 
-        bool ok = QSqlDatabase::database(BdWrapper::getConnection()).commit();
+        bool ok = QSqlDatabase::database(conName).commit();
 
         Wt::Json::Object data;
 
@@ -54,6 +54,7 @@ protected:
         response.setMimeType("application/json");
 
         response.out() << serialize(data);
+        BdWrapper::closeConnection(conName);
 
         //response.out() << "Db clear!\n";
     }

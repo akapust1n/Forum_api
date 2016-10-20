@@ -24,13 +24,13 @@
 #include <BdWrapper.h>
 
 class HandleRequestBase {
-protected:
+public:
     QJsonObject objectRequest;
     QJsonObject objectResponce;
     QJsonObject responseContent; //jsonArray
     std::string output;
 
-protected:
+public:
     // virtual bool doSqlRequest();
     void handlePostParams(const Wt::Http::Request& request)
     {
@@ -51,14 +51,16 @@ protected:
     virtual void prepareOutput()
     {
         QJsonDocument doc(objectResponce);
-        const QByteArray data = doc.toJson();
-        QString temp(data);
-        output = temp.toStdString();         //ДЛЯ QT 5.3
+//       QJsonObject jsonObj; // assume this has been populated with Json data
+
+        QString strJson(doc.toJson(QJsonDocument::Compact));
+        output = strJson.toStdString();
+
     }
 };
 class HandleRequestList : public HandleRequestBase {
 
-protected:
+public:
     virtual void handleResponse()
     {
         QString strGoodReply = Source::getAnswerTemplateList();
@@ -68,9 +70,11 @@ protected:
     virtual void prepareOutput()
     {
         QJsonDocument doc(objectResponce);
-        const QByteArray data = doc.toJson();
-        QString temp(data);
-        output = temp.toStdString();
+//       QJsonObject jsonObj; // assume this has been populated with Json data
+
+        QString strJson(doc.toJson(QJsonDocument::Compact));
+        output = strJson.toStdString();
+
     }
 };
 

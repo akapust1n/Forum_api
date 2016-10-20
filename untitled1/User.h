@@ -24,7 +24,7 @@
 #include <iostream>
 
 
-class UserCreate : public Wt::WResource, public HandleRequestBase {
+class UserCreate : public Wt::WResource {
 public:
     virtual ~UserCreate()
     {
@@ -34,44 +34,44 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-
-        handlePostParams(request);
+HandleRequestBase hR;
+        hR.handlePostParams(request);
         QString conName = BdWrapper::getConnection();
 
         bool test = QSqlDatabase::database(conName).transaction();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Users (username, about, name, email, isAnonymous) VALUES (:username, :about, :name, :email, :isAnonymous);");
-        query.bindValue(":username", objectRequest["username"].toString());
-        query.bindValue(":about", objectRequest["about"].toString());
-        query.bindValue(":name", objectRequest["name"].toString());
-        query.bindValue(":email", objectRequest["email"].toString());
-        query.bindValue(":isAnonymous", objectRequest["isAnonymous"].toBool());
+        query.bindValue(":username", hR.objectRequest["username"].toString());
+        query.bindValue(":about", hR.objectRequest["about"].toString());
+        query.bindValue(":name", hR.objectRequest["name"].toString());
+        query.bindValue(":email", hR.objectRequest["email"].toString());
+        query.bindValue(":isAnonymous", hR.objectRequest["isAnonymous"].toBool());
          bool ok =query.exec();
          QSqlDatabase::database(conName).commit();
 
 
-        handleResponse();
-        objectResponce["code"] = ok ? 0 : 5;
+        hR.handleResponse();
+        hR.objectResponce["code"] = QJsonValue(ok ? 0 : 5);
 
-        /*esponseContent["username"] = objectRequest["username"];
-        responseContent["about"] = objectRequest["about"];
-        responseContent["name"] = objectRequest["name"].toString();
-        responseContent["email"] = objectRequest["email"];
-        responseContent["isAnonymous"] = objectRequest["isAnonymous"];*/
+        /*esponseContent["username"] = hR.objectRequest["username"];
+        hR.responseContent["about"] = hR.objectRequest["about"];
+        hR.responseContent["name"] = hR.objectRequest["name"].toString();
+        hR.responseContent["email"] = hR.objectRequest["email"];
+        hR.responseContent["isAnonymous"] = hR.objectRequest["isAnonymous"];*/
         bool tt= true;
-        objectResponce["response"] = UserInfo::getFullUserInfo(objectRequest["email"].toString(), tt);
+        hR.objectResponce["response"] = UserInfo::getFullUserInfo(hR.objectRequest["email"].toString(), tt);
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
-        //std::cout << output << "Tut";
+        response.out() << hR.output;
+        //std::cout << hR.output << "Tut";
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class UserDetails : public Wt::WResource, public HandleRequestBase {
+class UserDetails : public Wt::WResource {
 public:
     virtual ~UserDetails()
     {
@@ -80,7 +80,7 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
+    {HandleRequestBase hR;
         //ПЕРЕПИСАТЬ В USERINFO ВСЕ ЗАПРОСЫ ПРО ЮЗЕРА ((
         //на данный момент это просто захардкожено для прикола
         //Возможно, уже переписал
@@ -90,20 +90,20 @@ protected:
         QString strGoodReply = Source::getAnswerTemplate();
         bool isUserExist = false;
 
-        handleResponse();
-        responseContent = UserInfo::getFullUserInfo(user, isUserExist);
-        objectResponce["response"] = responseContent;
+        hR.handleResponse();
+        hR.responseContent = UserInfo::getFullUserInfo(user, isUserExist);
+        hR.objectResponce["response"] = hR.responseContent;
 
-        objectResponce["code"] = isUserExist ? 0 : 1;
+        hR.objectResponce["code"] = isUserExist ? 0 : 1;
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
-        response.out() << output;
+        response.out() << hR.output;
         // std::cout << data.toStdString() << std::endl;
     }
 };
 
-class UserFollow : public Wt::WResource, public HandleRequestBase {
+class UserFollow : public Wt::WResource{
 public:
     virtual ~UserFollow()
     {
@@ -112,40 +112,40 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        handlePostParams(request);
+    {HandleRequestBase hR;
+        hR.handlePostParams(request);
 
-        handleResponse();
+        hR.handleResponse();
         QString conName = BdWrapper::getConnection();
 
         bool test = QSqlDatabase::database(conName).transaction();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("INSERT INTO Followers (follower, followee) VALUES (:follower, :followee);");
-        query.bindValue(":follower", objectRequest["follower"].toString());
-        query.bindValue(":followee", objectRequest["followee"].toString());
+        query.bindValue(":follower", hR.objectRequest["follower"].toString());
+        query.bindValue(":followee", hR.objectRequest["followee"].toString());
         query.exec();
         bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = false;
-        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
+        QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["follower"].toString(), isUserExist);
         if (isUserExist) {
-            objectResponce["code"] = 0;
-            objectResponce["response"] = responseContent;
+            hR.objectResponce["code"] = 0;
+            hR.objectResponce["response"] = hR.responseContent;
         } else {
-            objectResponce["code"] = 1;
-            objectResponce["response"] = "error message";
+            hR.objectResponce["code"] = 1;
+            hR.objectResponce["response"] = "error message";
         }
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class UserUnFollow : public Wt::WResource, public HandleRequestBase {
+class UserUnFollow : public Wt::WResource {
 public:
     virtual ~UserUnFollow()
     {
@@ -154,39 +154,39 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        handlePostParams(request);
+    {HandleRequestBase hR;
+        hR.handlePostParams(request);
 
-        handleResponse();
+        hR.handleResponse();
         QString conName = BdWrapper::getConnection();
 
         bool test = QSqlDatabase::database(conName).transaction();
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("DELETE FROM Followers WHERE follower=:follower AND followee=:followee;");
-        query.bindValue(":follower", objectRequest["follower"].toString());
-        query.bindValue(":followee", objectRequest["followee"].toString());
+        query.bindValue(":follower", hR.objectRequest["follower"].toString());
+        query.bindValue(":followee", hR.objectRequest["followee"].toString());
         query.exec();
         bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = false;
-        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["follower"].toString(), isUserExist);
+        QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["follower"].toString(), isUserExist);
         if (isUserExist) {
-            objectResponce["code"] = 0;
-            objectResponce["response"] = responseContent;
+            hR.objectResponce["code"] = 0;
+            hR.objectResponce["response"] = hR.responseContent;
         } else {
-            objectResponce["code"] = 1;
-            objectResponce["response"] = "error message";
+            hR.objectResponce["code"] = 1;
+            hR.objectResponce["response"] = "error message";
         }
 
-        prepareOutput();
+        hR.prepareOutput();
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
-class UserUpdateProfile : public Wt::WResource, public HandleRequestBase {
+class UserUpdateProfile : public Wt::WResource{
 public:
     virtual ~UserUpdateProfile()
     {
@@ -195,42 +195,42 @@ public:
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
-    {
-        handlePostParams(request);
+    {HandleRequestBase hR;
+        hR.handlePostParams(request);
 
-        handleResponse();
+        hR.handleResponse();
         QString conName = BdWrapper::getConnection();
 
         bool test = QSqlDatabase::database(conName).transaction();
 
         QSqlQuery query(QSqlDatabase::database(conName));
         query.prepare("UPDATE Users SET about=:about, name=:name WHERE email=:user;");
-        query.bindValue(":user", objectRequest["user"].toString());
-        query.bindValue(":about", objectRequest["about"].toString());
-        query.bindValue(":name", objectRequest["name"].toString());
+        query.bindValue(":user", hR.objectRequest["user"].toString());
+        query.bindValue(":about", hR.objectRequest["about"].toString());
+        query.bindValue(":name", hR.objectRequest["name"].toString());
         query.exec();
         bool ok = QSqlDatabase::database(conName).commit();
 
         bool isUserExist = true;
-        QJsonObject responseContent = UserInfo::getFullUserInfo(objectRequest["user"].toString(), isUserExist);
+        QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["user"].toString(), isUserExist);
         if (isUserExist) {
-            objectResponce["code"] = 0;
-            objectResponce["response"] = responseContent;
+            hR.objectResponce["code"] = 0;
+            hR.objectResponce["response"] = hR.responseContent;
         } else {
-            objectResponce["code"] = 1;
-            objectResponce["response"] = "error message";
+            hR.objectResponce["code"] = 1;
+            hR.objectResponce["response"] = "error message";
         }
 
-        prepareOutput();
+        hR.prepareOutput();
 
-        response.out() << output;
+        response.out() << hR.output;
         // std::cout << "DATA____" << data.toStdString();
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class UserListFollowers : public Wt::WResource, public HandleRequestList {
+class UserListFollowers : public Wt::WResource {
 public:
     virtual ~UserListFollowers()
     {
@@ -240,6 +240,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList  hR;
         QString user;
         user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
 
@@ -272,7 +273,7 @@ protected:
         bool ok = query.exec(expression);
 
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfFollowers;
         bool isUserExist = true; // заглушка
 
@@ -284,19 +285,19 @@ protected:
             }
         }
         std::cout<<query.lastQuery().toStdString()<<"HEI3_"<<ok<<"__okis";
-        objectResponce["response"] = arrayOfFollowers;
+        hR.objectResponce["response"] = arrayOfFollowers;
 
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class UserListFollowing : public Wt::WResource, public HandleRequestList {
+class UserListFollowing : public Wt::WResource {
 public:
     virtual ~UserListFollowing()
     {
@@ -306,6 +307,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList  hR;
         QString user;
         user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
 
@@ -337,7 +339,7 @@ protected:
         expression = "SELECT email FROM Users u JOIN Followers f ON  u.email = f.followee WHERE f.follower=" + quote + user + quote + str_since + str_order + str_limit + ";";
         bool ok = query.exec(expression);
 
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfFollowers;
         bool isUserExist = true; // заглушка
         if (ok) {
@@ -349,20 +351,20 @@ protected:
                 std::cout << "HERE22";
             }
         }
-        objectResponce["response"] = arrayOfFollowers;
+        hR.objectResponce["response"] = arrayOfFollowers;
         std::cout << query.lastQuery().toStdString() << "hh2_" << arrayOfFollowers.isEmpty() << "_size";
 
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }
 };
 
-class UserListPosts : public Wt::WResource, public HandleRequestList {
+class UserListPosts : public Wt::WResource {
 public:
     virtual ~UserListPosts()
     {
@@ -372,6 +374,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
+        HandleRequestList  hR;
         QString user;
         user = user.fromStdString(request.getParameter("user") ? *request.getParameter("user") : " ");
 
@@ -404,7 +407,7 @@ protected:
 
         bool ok = query.exec(expression);
         std::cout << query.lastQuery().toStdString() << "HEI3";
-        handleResponse();
+        hR.handleResponse();
         QJsonArray arrayOfPosts;
         bool isPostExist = true; // заглушка
 
@@ -415,14 +418,14 @@ protected:
                 arrayOfPosts << jsonObj;
             }
         }
-        objectResponce["code"] = ok ? 0 : 1;
-        objectResponce["response"] = arrayOfPosts;
+        hR.objectResponce["code"] = ok ? 0 : 1;
+        hR.objectResponce["response"] = arrayOfPosts;
 
-        prepareOutput();
+        hR.prepareOutput();
 
         response.setStatus(200);
 
-        response.out() << output;
+        response.out() << hR.output;
         BdWrapper::closeConnection(conName);
 
     }

@@ -37,9 +37,9 @@ private:
         while (query.next()) {
             result.append(query.value(0).toString());
         };
+        BdWrapper::closeConnection(conName);
 
         return result;
-        BdWrapper::closeConnection(conName);
 
     }
     //возвращает список подписок
@@ -54,8 +54,9 @@ private:
         while (query.next()) {
             result.append(query.value(0).toString());
         };
-        return result;
         BdWrapper::closeConnection(conName);
+
+        return result;
 
     }
     //список подписок на треды
@@ -72,9 +73,9 @@ private:
             result_int.append(query.value(0).toInt());
         };
         std::cout << "LEN_" << result.length();
+        BdWrapper::closeConnection(conName);
 
         return result_int;
-        BdWrapper::closeConnection(conName);
 
     }
 
@@ -123,7 +124,7 @@ public:
 
         QString strGoodReply = Source::getUserTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));

@@ -30,7 +30,7 @@ public:
     {
         QString strGoodReply = Source::getForumTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
@@ -60,7 +60,7 @@ public:
     {
         QString strGoodReply = Source::getForumTemplate();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
-        //  QJsonObject objectResponce = jsonResponse.object();
+        //  QJsonObject hR.objectResponce = jsonResponse.object();
         QJsonObject jsonArray = jsonResponse.object();
         QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
