@@ -4,51 +4,55 @@
 #include <QSqlQuery>
 #include <iostream>
 #define NUM_CON 1000000
+#define MAX_CONNECTIONS 50
 #include <QMutex>
+#include <qvector.h>
+#include <vector>
+
+std::vector<int> pool(MAX_CONNECTIONS, 0);
+QMutex mutex;
 
 class BdWrapper {
 public:
-    static bool createConnection(QString name)
-    {
+    // static QVector<int> vec(5, 42);
 
-        QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL", name);
-        db.setHostName("localhost");
-        db.setDatabaseName("forum");
-        db.setUserName("root");
-        db.setPassword("1111");
-        bool ok = db.open();
-        if (db.isOpen())
-            std::cout << "OPEN1";
-        return ok;
+    void createConnection()
+    {
+        for (int i = 0; i < MAX_CONNECTIONS; i++) {
+            QString name = QString::number(i);
+            QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL", name);
+            db.setHostName("localhost");
+            db.setDatabaseName("forum");
+            db.setUserName("root");
+            db.setPassword("1111");
+            db.open();
+          // std::cout<<"NAME_"<<ok<<name.toStdString();
+
+        }
     }
     static void closeConnection(QString name)
     {
+        QMutexLocker locker(&mutex);
 
-        QSqlDatabase::database(name).close();
-        QSqlDatabase::removeDatabase(name);
-        if (!QSqlDatabase::database(name).isOpen())
-            std::cout << "ClOSE";
-    }
-    static bool execute_sql(QString arg)
-    {
-        QSqlQuery query(QSqlDatabase::database("apidb8"));
-        bool result = query.exec(arg);
-        std::cout << "execution\n";
-        return result;
+        pool[name.toInt()] = 0;
     }
 
     static QString getConnection()
     {
-        static QMutex mutex;
-        static int con = 1;
         QMutexLocker locker(&mutex);
-        if (con > NUM_CON)
-            con = 1;
-        else
-            con++;
-        QString name = QString::number(con);
-        createConnection(name); //тут можно кинуть экзепшн
+        QString name;
+        int freeCon  = 0;
 
+        for(freeCon ; freeCon<pool.size();freeCon++) {
+            if (pool[freeCon] == 0){
+                //std::cout<<"HERE"<<pool.size();
+                name = QString::number(freeCon);
+                pool[freeCon] = 1;
+                break;
+
+            }
+        }
+        if(freeCon==MAX_CONNECTIONS) std::cout<<"ALERT";
         return name;
     }
 

@@ -13,7 +13,7 @@ int main(int argc, char** argv)
         WServer server(argv[0]);
         server.setServerConfiguration(argc, argv); //создаем сервер
         BdWrapper connection;
-        //bool ok= connection.createConnection(); //тут будет пул коннектов
+        connection.createConnection(); //тут будет пул коннектов
                                   //роутер
         Router router;
         router.route(server);
