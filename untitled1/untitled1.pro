@@ -9,9 +9,10 @@ QMAKE_CXXFLAGS += -std=c++1y
 
 SOURCES += main.cpp
 
-LIBS += -L/usr/lib -lwt -lwthttp -lwtdbo -lwtdbosqlite3 -I/usr/local/include
+LIBS += -L/usr/lib -lwt -lwthttp -lwtdbo -lwtdbosqlite3  -lzdb -I/usr/local/include  -I/usr/include/zdb
 LIBS += -L/usr/local/lib -lwthttp -lwt -lboost_regex -lboost_signals
 LIBS += -lboost_system -lboost_thread -lboost_filesystem -lboost_date_time -lpthread -lcrypt
+
 
 
 HEADERS += \

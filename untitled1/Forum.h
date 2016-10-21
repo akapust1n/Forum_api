@@ -21,6 +21,7 @@
 #include <Wt/WServer>
 #include <iostream>
 #include <istream>
+//#include <zdb.h>
 
 class ForumCreate : public Wt::WResource {
 public:

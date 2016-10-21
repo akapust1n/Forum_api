@@ -5,6 +5,8 @@
 #include <iostream>
 #define NUM_CON 1000000
 #include <QMutex>
+#include <zdb/zdb.h>
+//#include <libzdb>
 
 class BdWrapper {
 public:
