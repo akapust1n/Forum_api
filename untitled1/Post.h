@@ -249,7 +249,7 @@ protected:
     }
 };
 
-class PostUpdate : public Wt::WResource, public HandleRequestBase {
+class PostUpdate : public Wt::WResource{
 public:
     virtual ~PostUpdate()
     {
@@ -282,7 +282,7 @@ protected:
     }
 };
 
-class PostVote : public Wt::WResource, public HandleRequestBase {
+class PostVote : public Wt::WResource{
 public:
     virtual ~PostVote()
     {
@@ -389,3 +389,4 @@ protected:
 };
 
 #endif // POST_H
+
