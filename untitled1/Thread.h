@@ -69,6 +69,8 @@ protected:
 
         response.out() << hR.output;
         // std::cout << hR.output << "Tut";
+        BdWrapper::closeConnection(conName);
+
     }
 };
 class ThreadDetails : public Wt::WResource {
@@ -195,6 +197,8 @@ protected:
         hR.prepareOutput();
         response.setStatus(200);
         response.out() << hR.output;
+        BdWrapper::closeConnection(conName);
+
     }
 };
 

@@ -1,9 +1,12 @@
 #ifndef POST_H
 #define POST_H
+#include "ForumInfo.h"
 #include "PostInfo.h"
+#include "ThreadInfo.h"
 #include "ThreadInfo.h"
 #include "Trash.h"
 #include "User.h"
+#include <BdWrapper.h>
 #include <PostInfo.h>
 #include <PostInfo.h>
 #include <QJsonArray>
@@ -25,11 +28,8 @@
 #include <Wt/WResource>
 #include <Wt/WServer>
 #include <iostream>
-#include "ForumInfo.h"
-#include "ThreadInfo.h"
-#include <BdWrapper.h>
 
-class PostCreate : public Wt::WResource{
+class PostCreate : public Wt::WResource {
 public:
     virtual ~PostCreate()
     {
@@ -100,16 +100,15 @@ protected:
         if (ok) {
 
             //обновляем path. ТУТ ДОЛЖНА БЫТЬ ТРАНЗАКЦИЯ(наверное)
-//            int last_id = query.lastInsertId().toInt();
-//            if (path==""){
-//            QString str_last_id = QString::number(last_id-1, BASE);
-//            QSqlQuery query2(QSqlDatabase::database(conName)));
-//            query2.prepare("UPDATE Posts SET path=? WHERE id=?;");
-//            query2.bindValue(0, str_last_id);
-//            query2.bindValue(1, last_id);
-//           bool ok2= query2.exec();
-//           std::cout<<str_last_id.toStdString()<<"___"<<ok2<<"HAIl";}
-
+            //            int last_id = query.lastInsertId().toInt();
+            //            if (path==""){
+            //            QString str_last_id = QString::number(last_id-1, BASE);
+            //            QSqlQuery query2(QSqlDatabase::database(conName)));
+            //            query2.prepare("UPDATE Posts SET path=? WHERE id=?;");
+            //            query2.bindValue(0, str_last_id);
+            //            query2.bindValue(1, last_id);
+            //           bool ok2= query2.exec();
+            //           std::cout<<str_last_id.toStdString()<<"___"<<ok2<<"HAIl";}
 
             hR.objectResponce["code"] = 0;
             bool isThreadExist = true; //костыль(
@@ -171,10 +170,10 @@ protected:
             hR.responseContent["user"] = UserInfo::getFullUserInfo(hR.responseContent["user"].toString(), isPostExist);
         }
         if (relatedArray[1] != "") { //TODO
-             hR.responseContent["forum"] = ForumInfo::getFullForumInfo(hR.responseContent["forum"].toString(), isPostExist);
+            hR.responseContent["forum"] = ForumInfo::getFullForumInfo(hR.responseContent["forum"].toString(), isPostExist);
         }
         if (relatedArray[2] != "") { //TODO
-             hR.responseContent["thread"] = ThreadInfo::getFullThreadInfo(hR.responseContent["thread"].toInt(), isPostExist);
+            hR.responseContent["thread"] = ThreadInfo::getFullThreadInfo(hR.responseContent["thread"].toInt(), isPostExist);
         }
 
         hR.objectResponce["response"] = hR.responseContent;
@@ -188,7 +187,7 @@ protected:
     }
 };
 
-class PostRemove : public Wt::WResource{
+class PostRemove : public Wt::WResource {
 public:
     virtual ~PostRemove()
     {
@@ -198,7 +197,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-      HandleRequestBase hR;
+        HandleRequestBase hR;
         hR.handlePostParams(request);
         hR.handleResponse();
         QString conName = BdWrapper::getConnection();
@@ -215,7 +214,6 @@ protected:
         response.setStatus(200);
         response.out() << hR.output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
@@ -229,7 +227,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-       HandleRequestBase hR;
+        HandleRequestBase hR;
         hR.handlePostParams(request);
         hR.handleResponse();
         QString conName = BdWrapper::getConnection();
@@ -245,11 +243,10 @@ protected:
         response.setStatus(200);
         response.out() << hR.output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
-class PostUpdate : public Wt::WResource, public HandleRequestBase {
+class PostUpdate : public Wt::WResource {
 public:
     virtual ~PostUpdate()
     {
@@ -278,11 +275,10 @@ protected:
         response.setStatus(200);
         response.out() << hR.output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
-class PostVote : public Wt::WResource, public HandleRequestBase {
+class PostVote : public Wt::WResource{
 public:
     virtual ~PostVote()
     {
@@ -292,7 +288,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-HandleRequestBase hR;
+        HandleRequestBase hR;
         hR.handlePostParams(request);
         bool isPostExist = false;
         QString conName = BdWrapper::getConnection();
@@ -312,11 +308,10 @@ HandleRequestBase hR;
         response.setStatus(200);
         response.out() << hR.output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 
-class PostList : public Wt::WResource{
+class PostList : public Wt::WResource {
 public:
     virtual ~PostList()
     {
@@ -326,7 +321,7 @@ public:
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response)
     {
-        HandleRequestList  hR;
+        HandleRequestList hR;
         QString threadOrForum;
         bool isForum = false;
         threadOrForum = threadOrForum.fromStdString(request.getParameter("thread") ? *request.getParameter("thread") : "");
@@ -354,7 +349,7 @@ protected:
             str_limit = " LIMIT " + limit;
         if (order != "")
             str_order = " ORDER BY p.date " + order;
-       QString conName = BdWrapper::getConnection();
+        QString conName = BdWrapper::getConnection();
         QSqlQuery query(QSqlDatabase::database(conName));
         QString expression;
         if (!isForum) {
@@ -384,7 +379,6 @@ protected:
 
         response.out() << hR.output;
         BdWrapper::closeConnection(conName);
-
     }
 };
 

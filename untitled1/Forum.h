@@ -372,20 +372,6 @@ protected:
 
         if (ok) {
             while (query.next()) {
-                //                //                QString name = query.value(0).toString();
-                //                //                QJsonObject jsonObj = UserInfo::getFullUserInfo(name, isThreadExist); // assume this has been populated with Json data
-                //                //                arrayOfThreads << jsonObj;
-
-                //                //                query.prepare("SELECT * FROM Users WHERE email=:user;");
-                //                //                query.bindValue(":user", email);
-                //                QSqlQuery query2(QSqlDatabase::database(conName)));
-                //                QString expression2;
-                //                expression2 = "SELECT * FROM Users WHERE email=" + quote + query.value(0).toString() + quote + str_since + ";";
-                //                bool ok2= query2.exec(expression2);
-                //                //   QJsonObject jsonArray;
-                //                std::cout<<"_ISOK"<<ok<<ok2<<"_H";
-                //                std::cout << query2.lastQuery().toStdString() << "USERLIST";
-                //                while (query2.next()) {
                 QString strGoodReply = Source::getUserTemplate();
                 QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
                 //  QJsonObject hR.objectResponce = jsonResponse.object();
