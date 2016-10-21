@@ -10,7 +10,8 @@ class BdWrapper {
 public:
     static bool createConnection(QString name)
     {
-
+         static QMutex mutex2;
+         QMutexLocker locker(&mutex2);
         QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL", name);
         db.setHostName("localhost");
         db.setDatabaseName("forum");
