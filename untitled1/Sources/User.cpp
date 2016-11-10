@@ -33,6 +33,7 @@ void UserCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.handleResponse();
     hR.objectResponce["code"] = QJsonValue(ok ? 0 : 5);
@@ -104,12 +105,14 @@ void UserFollow::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
 
     bool isUserExist = false;
     QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["follower"].toString(), isUserExist);
     if (isUserExist) {
         hR.objectResponce["code"] = 0;
-        hR.objectResponce["response"] = hR.responseContent;
+        hR.objectResponce["response"] = responseContent;//hr.responseContenc
     } else {
         hR.objectResponce["code"] = 1;
         hR.objectResponce["response"] = "error message";
@@ -149,6 +152,8 @@ void UserUnFollow::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
 
     bool isUserExist = false;
     QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["follower"].toString(), isUserExist);
@@ -179,7 +184,7 @@ void UserUpdateProfile::handleRequest(const Wt::Http::Request& request, Wt::Http
 
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
-    PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Users SET about=:about, name=? WHERE email=?;");
+    PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Users SET about=?, name=? WHERE email=?;");
     PreparedStatement_setString(p, 1, hR.objectRequest["user"].toString().toStdString().c_str());
     PreparedStatement_setString(p, 2, hR.objectRequest["about"].toString().toStdString().c_str());
     PreparedStatement_setString(p, 3, hR.objectRequest["name"].toString().toStdString().c_str());
@@ -194,6 +199,8 @@ void UserUpdateProfile::handleRequest(const Wt::Http::Request& request, Wt::Http
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
 
     bool isUserExist = true;
     QJsonObject responseContent = UserInfo::getFullUserInfo(hR.objectRequest["user"].toString(), isUserExist);
@@ -270,6 +277,8 @@ void UserListFollowers::handleRequest(const Wt::Http::Request& request, Wt::Http
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
     hR.objectResponce["response"] = arrayOfFollowers;
 
     hR.prepareOutput();
@@ -338,6 +347,8 @@ void UserListFollowing::handleRequest(const Wt::Http::Request& request, Wt::Http
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
     hR.objectResponce["response"] = arrayOfFollowers;
 
     hR.prepareOutput();
@@ -405,6 +416,8 @@ void UserListPosts::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
                 std::cerr << "smth is wrong";
             }
             END_TRY;
+            Connection_close(con);
+
             hR.objectResponce["code"] = ok ? 0 : 1;
             hR.objectResponce["response"] = arrayOfPosts;
 

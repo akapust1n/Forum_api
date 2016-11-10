@@ -34,6 +34,7 @@ QJsonObject ForumInfo::getForumCreateInfo(QString name, bool& isForumExist)
         ok = false;
     }
     END_TRY;
+    Connection_close(con);
     return jsonArray;
 }
 
@@ -69,5 +70,6 @@ QJsonObject ForumInfo::getFullForumInfo(QString name, bool& isForumExist)
         ok = false;
     }
     END_TRY;
+    Connection_close(con);
     return jsonArray;
 }

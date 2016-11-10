@@ -68,6 +68,7 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr<<"smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.objectResponce["code"] = ok ? 0 : 4;
     bool isThreadExist = true;
@@ -161,6 +162,7 @@ void PostRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["post"] = hR.objectRequest["post"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -198,6 +200,7 @@ void PostRestore::handleRequest(const Wt::Http::Request& request, Wt::Http::Resp
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["post"] = hR.objectRequest["post"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -223,7 +226,7 @@ void PostUpdate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     bool ok = true;
 
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "UUPDATE Posts SET message=? WHERE id=?");
+        "UPDATE Posts SET message=? WHERE id=?");
     PreparedStatement_setString(p, 1, hR.objectRequest["message"].toString().toStdString().c_str());
     PreparedStatement_setInt(p, 2, hR.objectRequest["post"].toInt());
     TRY
@@ -236,6 +239,7 @@ void PostUpdate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["post"] = hR.objectRequest["post"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -276,6 +280,7 @@ void PostVote::handleRequest(const Wt::Http::Request& request, Wt::Http::Respons
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["post"] = hR.objectRequest["post"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -364,6 +369,7 @@ void PostList::handleRequest(const Wt::Http::Request& request, Wt::Http::Respons
         std::cerr << "smth is wrong :c";
     }
     END_TRY;
+    Connection_close(con);
     hR.objectResponce["response"] = arrayOfPosts;
 
     hR.prepareOutput();

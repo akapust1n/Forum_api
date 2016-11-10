@@ -38,6 +38,7 @@ void DbClear::handleRequest(const Wt::Http::Request& request, Wt::Http::Response
         rollback = true;
     }
     END_TRY;
+    Connection_close(con);
     if (!rollback)
         Connection_commit(con);
 

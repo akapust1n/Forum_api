@@ -5,6 +5,7 @@ Description https://github.com/s-stupnikov/technopark-db-api
 * WebToolKit 3.3.4
 * Qt 5.3
 * libzdb 3.1
+
 ## How to run?
 ```
 qmake && make;

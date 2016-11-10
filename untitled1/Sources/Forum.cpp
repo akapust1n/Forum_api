@@ -29,6 +29,7 @@ void ForumCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Resp
         ok = false;
     }
     END_TRY;
+    Connection_close(con);
 
     hR.handleResponse();
     //проверка на код и всё такое тут должны быть
@@ -198,6 +199,7 @@ void ForumListPosts::handleRequest(const Wt::Http::Request& request, Wt::Http::R
         std::cerr << "smth is wrong :c";
     }
     END_TRY;
+    Connection_close(con);
     hR.objectResponce["response"] = arrayOfPosts;
 
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -313,6 +315,7 @@ void ForumListThreads::handleRequest(const Wt::Http::Request& request, Wt::Http:
         std::cerr << "smth is wrong :c";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.objectResponce["response"] = arrayOfPosts;
 
@@ -422,6 +425,7 @@ void ForumListUsers::handleRequest(const Wt::Http::Request& request, Wt::Http::R
         std::cerr << "smth is wrong :c";
     }
     END_TRY;
+    Connection_close(con);
     hR.objectResponce["response"] = arrayOfThreads;
     hR.prepareOutput();
 

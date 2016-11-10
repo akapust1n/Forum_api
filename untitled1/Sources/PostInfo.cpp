@@ -23,6 +23,7 @@ int PostInfo::countPosts(int thread_id)
     }
 
     END_TRY;
+    Connection_close(con);
 
     return result;
 }
@@ -73,6 +74,7 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     return jsonArray;
 }
@@ -100,6 +102,7 @@ QString PostInfo::getPath(int parent_id)
             std::cerr << "smth is wrong";
         }
         END_TRY;
+    Connection_close(con);
 
     } else
         path = " ";
@@ -126,6 +129,7 @@ QString PostInfo::getPath(int parent_id)
             std::cerr << "smth is wrong";
         }
         END_TRY;
+    Connection_close(con);
     }
 
     else {
@@ -148,6 +152,7 @@ QString PostInfo::getPath(int parent_id)
             std::cerr << "smth is wrong";
         }
         END_TRY;
+    Connection_close(con);
     }
 
     return result;

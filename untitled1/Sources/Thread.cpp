@@ -38,6 +38,7 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     if (ok) {
         hR.objectResponce["code"] = 0;
@@ -137,6 +138,7 @@ void ThreadClose::handleRequest(const Wt::Http::Request& request, Wt::Http::Resp
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["thread"] = hR.objectRequest["thread"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -171,6 +173,7 @@ void ThreadOpen::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
     hR.responseContent["thread"] = hR.objectRequest["thread"];
     hR.objectResponce["code"] = ok ? 0 : 1;
     hR.objectResponce["response"] = hR.responseContent;
@@ -207,6 +210,7 @@ void ThreadRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
     p = Connection_prepareStatement(con, "UPDATE Posts SET isDeleted=true WHERE thread_id=?;");
     PreparedStatement_setInt(p, 1, hR.objectRequest["thread"].toInt());
 
@@ -222,6 +226,7 @@ void ThreadRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["thread"] = hR.objectRequest["thread"];
 
@@ -260,6 +265,7 @@ void ThreadRestore::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     p = Connection_prepareStatement(con, "UPDATE Posts SET isDeleted=false WHERE thread_id=?;");
     PreparedStatement_setInt(p, 1, hR.objectRequest["thread"].toInt());
@@ -276,6 +282,7 @@ void ThreadRestore::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["thread"] = hR.objectRequest["thread"];
     hR.objectResponce["code"] = ok ? 0 : 1;
@@ -314,6 +321,7 @@ void ThreadUpdate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.objectResponce["code"] = ok ? 0 : 1;
     bool tt = true;
@@ -352,6 +360,7 @@ void ThreadVote::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.objectResponce["code"] = ok ? 0 : 1;
     bool tt = true;
@@ -390,6 +399,7 @@ void ThreadSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http::
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["thread"] = hR.objectRequest["thread"];
     hR.responseContent["user"] = hR.objectRequest["user"];
@@ -428,6 +438,7 @@ void ThreadUnSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.responseContent["thread"] = hR.objectRequest["thread"];
     hR.responseContent["user"] = hR.objectRequest["user"];
@@ -507,6 +518,7 @@ void ThreadList::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     hR.objectResponce["response"] = arrayOfThreads;
 
@@ -587,6 +599,7 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 std::cerr << "smth is wrong";
             }
             END_TRY;
+    Connection_close(con);
         }
 
         if (order == "desc" || order == " ") {
@@ -613,6 +626,7 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 std::cerr << "smth is wrong";
             }
             END_TRY;
+    Connection_close(con);
         }
         str_order = " ";
     }
@@ -640,6 +654,7 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
     hR.objectResponce["code"] = ok ? 0 : 1;
     hR.objectResponce["response"] = arrayOfPosts;
 

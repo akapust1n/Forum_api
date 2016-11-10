@@ -44,6 +44,7 @@ QJsonObject ThreadInfo::getThreadCreateInfo(int id, bool& isThreadExist)
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
 
     return jsonArray;
 }
@@ -92,6 +93,8 @@ QJsonObject ThreadInfo::getFullThreadInfo(int id, bool& isThreadExist)
         std::cerr << "smth is wrong";
     }
     END_TRY;
+    Connection_close(con);
+
 
     return jsonArray;
 }
