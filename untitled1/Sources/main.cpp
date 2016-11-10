@@ -1,25 +1,26 @@
 #include <Wt/Http/Response>
 #include <Wt/WResource>
 #include <Wt/WServer>
-#include <BdWrapper.h>
 #include "Router.h"
+#include <zdb/zdb.h>
 
 using namespace Wt;
-
+ConnectionPool_T pool;
 
 int main(int argc, char** argv)
 {
     try {
         WServer server(argv[0]);
         server.setServerConfiguration(argc, argv); //создаем сервер
-        BdWrapper connection;
-      //  connection.createConnection(); //тут будет пул коннектов
-                                  //роутер
-        Router router;
+
+        URL_T url = URL_new("mysql://localhost/forum?user=root&password=1111");
+
+        pool = ConnectionPool_new(url);
+        ConnectionPool_start(pool);
+
+        Router router; //роутер
         router.route(server);
 
-        //DbClear dbClear;
-        //server.addResource(&dbClear,"/db/api/clear/");
 
         if (server.start()) {
             WServer::waitForShutdown();

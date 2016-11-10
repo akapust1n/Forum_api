@@ -3,10 +3,31 @@
 #include <QJsonValue>
 #include <QString>
 #include <QVariant>
+#include <Wt/Http/Request>
 #include <Wt/Http/Response>
 #include <boost/any.hpp>
 #include <string>
-#include <BdWrapper.h>
+#include <time.h>
+
+class Convertor {
+public:
+    static QString getTime(tm time)
+    {
+        QString result;
+        result.append(QString::number(time.tm_year));
+        result.append("-");
+        result.append(QString::number(time.tm_mon));
+        result.append("-");
+        result.append(QString::number(time.tm_mday));
+        result.append(" ");
+        result.append(QString::number(time.tm_hour));
+        result.append(":");
+        result.append(QString::number(time.tm_min));
+        result.append(":");
+        result.append(QString::number(time.tm_sec));
+        return result;
+    }
+};
 
 class LineAnalyze {
 public:
@@ -31,6 +52,7 @@ public:
         }
         return params;
     }
+    //translate tm to yyyy-MM-dd hh:mm:ss");
 
 private:
     static QString fixUnicode(std::string line)
