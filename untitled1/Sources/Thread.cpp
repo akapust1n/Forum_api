@@ -334,8 +334,11 @@ void ThreadUpdate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     bool ok = true;
 
     PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Threads SET message=?, slug=? WHERE id=?;");
-    PreparedStatement_setString(p, 1, hR.objectRequest["message"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["slug"].toString().toStdString().c_str());
+    const std::string message = hR.objectRequest["message"].toString().toStdString();
+    const std::string slug = hR.objectRequest["slug"].toString().toStdString();
+
+    PreparedStatement_setString(p, 1, message.c_str());
+    PreparedStatement_setString(p, 2, slug.c_str());
     PreparedStatement_setInt(p, 3, hR.objectRequest["thread"].toInt());
     TRY
     {
@@ -371,10 +374,10 @@ void ThreadVote::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     hR.handleResponse();
     Connection_T con = ConnectionPool_getConnection(pool);
 
-    PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Threads SET likes=likes+?, dislikes=dislikes+? WHERE id =?;");
+    PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Threads SET likes=likes+?, dislikes=dislikes+? WHERE id=?");
     PreparedStatement_setInt(p, 1, hR.objectRequest["vote"].toInt() > 0);
     PreparedStatement_setInt(p, 2, hR.objectRequest["vote"].toInt() < 0);
-    PreparedStatement_setInt(p, 2, hR.objectRequest["thread"].toInt());
+    PreparedStatement_setInt(p, 3, hR.objectRequest["thread"].toInt());
     bool ok = true;
     TRY
     {

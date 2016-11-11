@@ -95,8 +95,10 @@ void UserFollow::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Followers (follower, followee) VALUES (?, ?);");
-    PreparedStatement_setString(p, 1, hR.objectRequest["follower"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["followee"].toString().toStdString().c_str());
+    const std::string follower = hR.objectRequest["follower"].toString().toStdString();
+    PreparedStatement_setString(p, 1, follower .c_str());
+    const std::string followee=hR.objectRequest["followee"].toString().toStdString();
+    PreparedStatement_setString(p, 2, followee.c_str());
     TRY
     {
         PreparedStatement_execute(p);
@@ -142,8 +144,10 @@ void UserUnFollow::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con, "DELETE FROM Followers WHERE follower=? AND followee=?");
-    PreparedStatement_setString(p, 1, hR.objectRequest["follower"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["followee"].toString().toStdString().c_str());
+    const std::string follower = hR.objectRequest["follower"].toString().toStdString();
+    PreparedStatement_setString(p, 1, follower.c_str());
+    const std::string followee = hR.objectRequest["followee"].toString().toStdString();
+    PreparedStatement_setString(p, 2, followee .c_str());
     TRY
     {
         PreparedStatement_execute(p);
@@ -187,9 +191,13 @@ void UserUpdateProfile::handleRequest(const Wt::Http::Request& request, Wt::Http
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con, "UPDATE Users SET about=?, name=? WHERE email=?;");
-    PreparedStatement_setString(p, 1, hR.objectRequest["user"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["about"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 3, hR.objectRequest["name"].toString().toStdString().c_str());
+    const std::string user = hR.objectRequest["user"].toString().toStdString();
+    const std::string about = hR.objectRequest["about"].toString().toStdString();
+    const std::string name = hR.objectRequest["name"].toString().toStdString();
+
+    PreparedStatement_setString(p, 1, user.c_str());
+    PreparedStatement_setString(p, 2, about.c_str());
+    PreparedStatement_setString(p, 3, name.c_str());
 
     TRY
     {

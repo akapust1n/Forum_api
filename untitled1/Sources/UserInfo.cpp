@@ -24,6 +24,8 @@ auto UserInsideInfo::_getFollowers(QString folowee)
     CATCH(SQLException)
     {
         ok = false;
+        std::cerr << "getFollowers error";
+
     }
     END_TRY;
     Connection_close(con);
@@ -50,7 +52,7 @@ auto UserInsideInfo::_getFollowee(QString follower)
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "getFollowee error";
     }
     END_TRY;
     Connection_close(con);
@@ -76,7 +78,7 @@ auto UserInsideInfo::_getSubscriptions(QString user)
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "getSubscriptions error";
     }
     END_TRY;
     Connection_close(con);
@@ -178,7 +180,7 @@ QJsonObject UserInfo::getUserInfo(QString email, bool& isUserExist)
     {
         ok = false;
         isUserExist = false;
-        std::cerr << "smth is wrong :c";
+        std::cerr << "GETUSER error";
     }
     END_TRY;
     Connection_close(con);

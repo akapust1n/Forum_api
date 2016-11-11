@@ -249,7 +249,8 @@ void PostUpdate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     PreparedStatement_T p = Connection_prepareStatement(con,
         "UPDATE Posts SET message=? WHERE id=?");
-    PreparedStatement_setString(p, 1, hR.objectRequest["message"].toString().toStdString().c_str());
+    const std::string message = hR.objectRequest["message"].toString().toStdString();
+    PreparedStatement_setString(p, 1, message.c_str());
     PreparedStatement_setInt(p, 2, hR.objectRequest["post"].toInt());
     TRY
     {
