@@ -14,14 +14,16 @@ void UserCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     hR.handlePostParams(request);
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
-    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Users (username, about, name, email, isAnonymous) VALUES (?, ?, ?, ?, ?);");
-    PreparedStatement_setString(p, 1, hR.objectRequest["username"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["about"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 3, hR.objectRequest["name"].toString().toStdString().c_str());
-
-    PreparedStatement_setString(p, 4, hR.objectRequest["email"].toString().toStdString().c_str());
-
-    PreparedStatement_setInt(p, 5, hR.objectRequest["isAnonymous"].toInt());
+    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Users (username, about, name, email, isAnonymous) VALUES (?, ?, ?, ?, ?)");
+    const std::string username = hR.objectRequest["username"].toString().toStdString();
+    PreparedStatement_setString(p, 1, username.c_str());
+    const std::string about = hR.objectRequest["about"].toString().toStdString();
+    PreparedStatement_setString(p, 2, about.c_str());
+    const std::string name = hR.objectRequest["name"].toString().toStdString();
+    PreparedStatement_setString(p, 3, name.c_str());
+    const std::string email= hR.objectRequest["email"].toString().toStdString();
+    PreparedStatement_setString(p, 4, email.c_str());
+    PreparedStatement_setInt(p, 5, hR.objectRequest["isAnonymous"].toBool());
 
     TRY
     {
@@ -30,7 +32,7 @@ void UserCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "CANT CREATE USER"<<std::endl;
     }
     END_TRY;
     Connection_close(con);

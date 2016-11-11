@@ -53,7 +53,7 @@ protected:
 
 class ThreadRemove : public Wt::WResource {
 public:
-    virtual ~ThreadRemove();;
+    virtual ~ThreadRemove();
 
 protected:
     //тут должен быть роллбек
@@ -62,7 +62,7 @@ protected:
 
 class ThreadRestore : public Wt::WResource {
 public:
-    virtual ~ThreadRestore();;
+    virtual ~ThreadRestore();
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response);
@@ -70,7 +70,7 @@ protected:
 
 class ThreadUpdate : public Wt::WResource {
 public:
-    virtual ~ThreadUpdate();;
+    virtual ~ThreadUpdate();
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response);
@@ -78,7 +78,7 @@ protected:
 
 class ThreadVote : public Wt::WResource {
 public:
-    virtual ~ThreadVote();;
+    virtual ~ThreadVote();
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response);
@@ -86,7 +86,7 @@ protected:
 
 class ThreadSubscribe : public Wt::WResource {
 public:
-    virtual ~ThreadSubscribe();;
+    virtual ~ThreadSubscribe();
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response);
@@ -94,7 +94,7 @@ protected:
 
 class ThreadUnSubscribe : public Wt::WResource {
 public:
-    virtual ~ThreadUnSubscribe();;
+    virtual ~ThreadUnSubscribe();
 
 protected:
     virtual void handleRequest(const Wt::Http::Request& request, Wt::Http::Response& response);

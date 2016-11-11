@@ -130,24 +130,15 @@ QJsonObject UserInfo::getUserInfo(QString email, bool& isUserExist)
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
     ResultSet_T result;
-    std::cout << "TEST1.1" << std::endl;
-    PreparedStatement_T p ;
+    PreparedStatement_T p;
+    const std::string _email = email.toStdString();
     TRY
     {
-        std::cout << "TEST1.1.0." << std::endl;
-
-        p = Connection_prepareStatement(con, "SELECT * FROM Users WHERE email=?;");
-        std::cout << "TEST1.1.1." << std::endl;
-
-        PreparedStatement_setString(p, 1, email.toStdString().c_str());
-        std::cout << "TEST1.1.2." << std::endl;
-
-
+        p = Connection_prepareStatement(con, "SELECT * FROM Users WHERE email=?");
+        PreparedStatement_setString(p, 1, _email.c_str());
     }
     CATCH(SQLException)
     {
-        std::cout << "TEST1.2" << std::endl;
-
         std::cerr << "prepare error";
     }
 
@@ -159,9 +150,14 @@ QJsonObject UserInfo::getUserInfo(QString email, bool& isUserExist)
 
         while (ResultSet_next(result)) {
             jsonArray["id"] = ResultSet_getInt(result, 1);
-            jsonArray["email"] = ResultSet_getString(result, 2);
-            if (ResultSet_isnull(result, 3))
+            QString temp = ResultSet_getString(result, 2);
+            if (temp.length() == 0)
+                jsonArray["username"] = QJsonValue::Null;
+            else
+                jsonArray["email"] = ResultSet_getString(result, 2);
 
+            temp = ResultSet_getString(result, 3);
+            if (temp.length() == 0)
                 jsonArray["username"] = QJsonValue::Null;
             else
                 jsonArray["username"] = ResultSet_getString(result, 3);
@@ -184,24 +180,18 @@ QJsonObject UserInfo::getUserInfo(QString email, bool& isUserExist)
         isUserExist = false;
         std::cerr << "smth is wrong :c";
     }
-    FINALLY{
-        std::cout<<"finally2"<<std::endl;
-    }
     END_TRY;
-Connection_close(con);
+    Connection_close(con);
     return jsonArray;
 }
 
 QJsonObject UserInfo::getFullUserInfo(QString email, bool& isUserExist)
 {
     QJsonObject jsonArray = getUserInfo(email, isUserExist);
-    std::cout << "TEST1.5" << std::endl;
     UserInsideInfo userInsideInfo;
     if (isUserExist) {
-        std::cout << "TEST2" << std::endl;
         QJsonArray followers = userInsideInfo.getFollowers(email);
         QJsonArray followee = userInsideInfo.getFollowee(email);
-        std::cout << "TEST3" << std::endl;
 
         jsonArray["following"] = followee;
         jsonArray["followers"] = followers;
