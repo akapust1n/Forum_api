@@ -6,7 +6,7 @@ extern ConnectionPool_T pool;
 int PostInfo::countPosts(int thread_id)
 {
     Connection_T con = ConnectionPool_getConnection(pool);
-    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT COUNT(*) FROM Posts WHERE thread_id=:id AND isDeleted=false");
+    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT COUNT(*) FROM Posts WHERE thread_id=? AND isDeleted=false");
     PreparedStatement_setInt(p, 1, thread_id);
     ResultSet_T _result;
     int result;
@@ -40,12 +40,12 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
     TRY
     {
         result = PreparedStatement_executeQuery(p);
-
+        while (ResultSet_next(result)){
         jsonArray["id"] = ResultSet_getInt(result, 1);
         jsonArray["user"] = ResultSet_getString(result, 2);
         jsonArray["message"] = ResultSet_getString(result, 3);
         jsonArray["forum"] = ResultSet_getString(result, 4);
-        jsonArray["thread"] = ResultSet_getString(result, 5);
+        jsonArray["thread"] = ResultSet_getInt(result, 5);
         // jsonArray["thread"]
         //    = QJsonValue::N;
         if (!ResultSet_isnull(result, 6))
@@ -65,15 +65,16 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
         jsonArray["isSpam"] = ResultSet_getInt(result, 13);
         jsonArray["isDeleted"] = ResultSet_getInt(result, 14);
         jsonArray["points"] = ResultSet_getInt(result, 8) - ResultSet_getInt(result, 9);
-
+}
         isPostExist = true;
     }
     CATCH(SQLException)
     {
         isPostExist = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "getFullPostInfo_error";
     }
     END_TRY;
+    auto tt = Connection_getLastError(con);
     Connection_close(con);
 
     return jsonArray;
@@ -81,7 +82,7 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
 
 QString PostInfo::getPath(int parent_id)
 {
-    QString result = "";
+    QString result;
     QString path;
     if (parent_id != -1) {
         Connection_T con = ConnectionPool_getConnection(pool);

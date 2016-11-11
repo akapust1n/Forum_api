@@ -17,9 +17,14 @@ void ForumCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Resp
 
     PreparedStatement_T p = Connection_prepareStatement(con,
         "INSERT INTO Forums (name, short_name, user) VALUES (?, ?, ?)");
-    PreparedStatement_setString(p, 1, hR.objectRequest["name"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["short_name"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 3, hR.objectRequest["user"].toString().toStdString().c_str());
+    const std::string name =hR.objectRequest["name"].toString().toStdString();
+    PreparedStatement_setString(p, 1, name.c_str());
+    const std::string short_name =hR.objectRequest["short_name"].toString().toStdString();
+
+    PreparedStatement_setString(p, 2, short_name.c_str());
+    const std::string user =hR.objectRequest["user"].toString().toStdString();
+
+    PreparedStatement_setString(p, 3, user.c_str());
     TRY
     {
         PreparedStatement_execute(p);

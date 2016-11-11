@@ -12,18 +12,32 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
 {
     HandleRequestBase hR;
     hR.handlePostParams(request);
-    if (hR.objectRequest["isDeleted"] == "")
+    if (hR.objectRequest["isDeleted"].toString().length() == 0)
         hR.objectRequest["isDeleted"] = false;
     Connection_T con = ConnectionPool_getConnection(pool);
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
-    PreparedStatement_setString(p, 1, hR.objectRequest["forum"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 2, hR.objectRequest["title"].toString().toStdString().c_str());
+        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+    const std::string forum = hR.objectRequest["forum"].toString().toStdString();
+    PreparedStatement_setString(p, 1, forum.c_str());
+
+    const std::string title = hR.objectRequest["title"].toString().toStdString();
+    PreparedStatement_setString(p, 2, title.c_str());
+
     PreparedStatement_setInt(p, 3, hR.objectRequest["isClosed"].toBool());
-    PreparedStatement_setString(p, 4, hR.objectRequest["user"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 5, hR.objectRequest["date"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 6, hR.objectRequest["message"].toString().toStdString().c_str());
-    PreparedStatement_setString(p, 7, hR.objectRequest["slug"].toString().toStdString().c_str());
+
+    const std::string user = hR.objectRequest["user"].toString().toStdString();
+    PreparedStatement_setString(p, 4, user.c_str());
+
+    const std::string data = hR.objectRequest["date"].toString().toStdString();
+    PreparedStatement_setString(p, 5, data.c_str());
+
+    const std::string message = hR.objectRequest["message"].toString().toStdString();
+    PreparedStatement_setString(p, 6, message.c_str());
+
+    const std::string slug = hR.objectRequest["slug"].toString().toStdString();
+    PreparedStatement_setString(p, 7, slug.c_str());
+
     PreparedStatement_setInt(p, 8, hR.objectRequest["isDeleted"].toBool());
     bool ok = true;
 
@@ -35,20 +49,35 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "THREAD DOESNT CREATE";
     }
     END_TRY;
-    Connection_close(con);
 
     if (ok) {
         hR.objectResponce["code"] = 0;
         bool isThreadExist = true; //костыль(
-        hR.objectResponce["response"] = ThreadInfo::getThreadCreateInfo(Connection_lastRowId(con), isThreadExist);
+        ResultSet_T result;
+        int lastId;
+        TRY
+        {
+            result = Connection_executeQuery(con, "Select count(*) from Threads");
+            while (ResultSet_next(result)) {
+                lastId = ResultSet_getInt(result, 1);
+            }
+        }
+        CATCH(SQLException)
+        {
+            ok = false;
+            std::cerr << "smth is  wrong";
+        }
+        END_TRY;
+        hR.objectResponce["response"] = ThreadInfo::getThreadCreateInfo(lastId, isThreadExist);
     }
 
     else {
         hR.objectResponce["code"] = 4;
     }
+    Connection_close(con);
 
     hR.prepareOutput();
     response.setStatus(200);
@@ -71,8 +100,8 @@ void ThreadDetails::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
     thread = thread.fromStdString(request.getParameter("thread") ? *request.getParameter("thread") : "");
     int thread_id = thread.toInt();
     QString relatedArray[2]; //0-user, 1-forum
-    relatedArray[0] = "";
-    relatedArray[1] = "";
+    relatedArray[0] = " ";
+    relatedArray[1] = " ";
     bool error = false;
 
     auto temp = request.getParameterValues("related");
@@ -92,10 +121,10 @@ void ThreadDetails::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
     hR.responseContent = ThreadInfo::getFullThreadInfo(thread_id, isThreadExist);
 
     //  isUserExist костыль, надо как-то перерабыватывать функцию
-    if (relatedArray[0] != "") {
+    if (relatedArray[0] != " ") {
         hR.responseContent["user"] = UserInfo::getFullUserInfo(hR.responseContent["user"].toString(), isThreadExist);
     }
-    if (relatedArray[1] != "") { //TODO
+    if (relatedArray[1] != " ") { //TODO
         // hR.responseContent["user"] = UserInfo::getFullUserInfo(hR.responseContent["user"], isUserExist);
     }
     if (hR.responseContent["isDeleted"].toBool()) {
@@ -210,7 +239,6 @@ void ThreadRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         std::cerr << "smth is wrong";
     }
     END_TRY;
-    Connection_close(con);
     p = Connection_prepareStatement(con, "UPDATE Posts SET isDeleted=true WHERE thread_id=?;");
     PreparedStatement_setInt(p, 1, hR.objectRequest["thread"].toInt());
 
@@ -265,7 +293,6 @@ void ThreadRestore::handleRequest(const Wt::Http::Request& request, Wt::Http::Re
         std::cerr << "smth is wrong";
     }
     END_TRY;
-    Connection_close(con);
 
     p = Connection_prepareStatement(con, "UPDATE Posts SET isDeleted=false WHERE thread_id=?;");
     PreparedStatement_setInt(p, 1, hR.objectRequest["thread"].toInt());
@@ -385,7 +412,8 @@ void ThreadSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http::
     Connection_T con = ConnectionPool_getConnection(pool);
 
     PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Subscribers (user, thread_id) VALUES (?, ?);");
-    PreparedStatement_setString(p, 1, hR.objectRequest["user"].toString().toStdString().c_str());
+    const std::string user = hR.objectRequest["user"].toString().toStdString();
+    PreparedStatement_setString(p, 1, user.c_str());
     PreparedStatement_setInt(p, 2, hR.objectRequest["thread"].toInt());
 
     bool ok = true;
@@ -425,7 +453,9 @@ void ThreadUnSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http
     Connection_T con = ConnectionPool_getConnection(pool);
 
     PreparedStatement_T p = Connection_prepareStatement(con, "DELETE FROM Subscribers WHERE user=? AND thread_id=?;");
-    PreparedStatement_setString(p, 1, hR.objectRequest["user"].toString().toStdString().c_str());
+    const std::string user = hR.objectRequest["user"].toString().toStdString();
+
+    PreparedStatement_setString(p, 1, user.c_str());
     PreparedStatement_setInt(p, 2, hR.objectRequest["thread"].toInt());
     bool ok = true;
     TRY
@@ -599,7 +629,6 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 std::cerr << "smth is wrong";
             }
             END_TRY;
-    Connection_close(con);
         }
 
         if (order == "desc" || order == " ") {
@@ -626,7 +655,6 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 std::cerr << "smth is wrong";
             }
             END_TRY;
-    Connection_close(con);
         }
         str_order = " ";
     }
@@ -642,7 +670,6 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     {
         result = Connection_executeQuery(con, expression.toStdString().c_str());
         while (ResultSet_next(result)) {
-
             int id = ResultSet_getInt(result, 4);
             QJsonObject jsonObj = PostInfo::getFullPostInfo(id, isPostExist); // assume this has been populated with Json data
             arrayOfPosts << jsonObj;

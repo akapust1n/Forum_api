@@ -48,7 +48,8 @@ QJsonObject ForumInfo::getFullForumInfo(QString name, bool& isForumExist)
     Connection_T con = ConnectionPool_getConnection(pool);
     PreparedStatement_T p = Connection_prepareStatement(con,
         "SELECT * FROM Forums WHERE short_name=?");
-    PreparedStatement_setString(p, 1, name.toStdString().c_str());
+    const std::string _name = name.toStdString();
+    PreparedStatement_setString(p, 1, _name.c_str());
     ResultSet_T _result;
     bool ok = true;
 

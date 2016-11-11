@@ -94,7 +94,7 @@ public:
         QString answer = "{"
                          "\"date\": \"2014-01-02 00:02:01\","
                          "\"dislikes\": 0,"
-                         "\"forum\": \"forum2\","
+                         "\"forum\": \"DO NOT SHOW\","
                          "\"id\": 3,"
                          "\"isApproved\": false,"
                          "\"isDeleted\": true,"
@@ -106,7 +106,7 @@ public:
                          "\"parent\": \"\""
                          "\"points\": 0,"
                          "\"thread\": \"\","
-                         "\"user\": \"example@mail.ru\""
+                         "\"user\": \"dont_show@mail.ru\""
                          "}";
         return answer;
     }
