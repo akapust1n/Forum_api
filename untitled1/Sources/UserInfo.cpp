@@ -10,7 +10,8 @@ auto UserInsideInfo::_getFollowers(QString folowee)
     result.clear(); //плохо с точки зрения памяти и скорости
     PreparedStatement_T p = Connection_prepareStatement(con,
         "SELECT follower FROM Followers WHERE followee=?");
-    PreparedStatement_setString(p, 1, folowee.toStdString().c_str());
+    const std::string _folowee  = folowee.toStdString();
+    PreparedStatement_setString(p, 1, _folowee.c_str());
     ResultSet_T _result;
     bool ok = true;
 
@@ -38,7 +39,8 @@ auto UserInsideInfo::_getFollowee(QString follower)
     Connection_T con = ConnectionPool_getConnection(pool);
     result.clear(); //плохо с точки зрения памяти и скорости
     PreparedStatement_T p = Connection_prepareStatement(con, "SELECT followee FROM Followers WHERE follower=?;");
-    PreparedStatement_setString(p, 1, follower.toStdString().c_str());
+    const std::string _follower = follower.toStdString();
+    PreparedStatement_setString(p, 1, _follower.c_str());
     ResultSet_T _result;
     bool ok = true;
 
@@ -65,6 +67,8 @@ auto UserInsideInfo::_getSubscriptions(QString user)
     Connection_T con = ConnectionPool_getConnection(pool);
     result.clear(); //плохо с точки зрения памяти и скорости
     PreparedStatement_T p = Connection_prepareStatement(con, "SELECT thread_id FROM Subscribers WHERE user=?");
+    const std::string _user = user.toStdString();
+    PreparedStatement_setString(p,1, _user.c_str());
     ResultSet_T _result;
     bool ok = true;
 
