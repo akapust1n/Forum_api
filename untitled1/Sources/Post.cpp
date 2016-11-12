@@ -57,7 +57,8 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     } else {
         path = PostInfo::getPath(-1);
-        PreparedStatement_setString(p, 6, '\0');
+        const char* nll = NULL;
+        PreparedStatement_setString(p, 6, nll);
     }
     PreparedStatement_setInt(p, 7, hR.objectRequest["isApproved"].toBool());
     PreparedStatement_setInt(p, 8, hR.objectRequest["isHighlighted"].toBool());

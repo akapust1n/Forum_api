@@ -40,18 +40,19 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
     TRY
     {
         result = PreparedStatement_executeQuery(p);
+        isPostExist = false;
         while (ResultSet_next(result)){
         jsonArray["id"] = ResultSet_getInt(result, 1);
         jsonArray["user"] = ResultSet_getString(result, 2);
         jsonArray["message"] = ResultSet_getString(result, 3);
         jsonArray["forum"] = ResultSet_getString(result, 4);
         jsonArray["thread"] = ResultSet_getInt(result, 5);
-        // jsonArray["thread"]
-        //    = QJsonValue::N;
+
         if (!ResultSet_isnull(result, 6))
             jsonArray["parent"] = ResultSet_getInt(result, 6);
         else
             jsonArray["parent"] = QJsonValue::Null;
+
         auto date = ResultSet_getDateTime(result, 7);
 
         // jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -65,8 +66,9 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
         jsonArray["isSpam"] = ResultSet_getInt(result, 13);
         jsonArray["isDeleted"] = ResultSet_getInt(result, 14);
         jsonArray["points"] = ResultSet_getInt(result, 8) - ResultSet_getInt(result, 9);
-}
         isPostExist = true;
+
+}
     }
     CATCH(SQLException)
     {

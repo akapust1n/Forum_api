@@ -92,20 +92,17 @@ void ForumListPosts::handleRequest(const Wt::Http::Request& request, Wt::Http::R
 {
     HandleRequestBase hR;
     QString forum;
-    forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : "");
+    forum = forum.fromStdString(request.getParameter("forum") ? *request.getParameter("forum") : " ");
 
     QString order;
-    order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : "");
+    order = order.fromStdString(request.getParameter("order") ? *request.getParameter("order") : " ");
     //0 - magic constant for empty parametr
     QString since_id;
-    since_id = since_id.fromStdString(request.getParameter("since") ? *request.getParameter("since") : "");
+    since_id = since_id.fromStdString(request.getParameter("since") ? *request.getParameter("since") : " ");
     QString limit;
-    limit = limit.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : "");
+    limit = limit.fromStdString(request.getParameter("limit") ? *request.getParameter("limit") : " ");
 
     QString relatedArray[3]; //0-user, 1-forum,3 -thread
-    relatedArray[0] = "";
-    relatedArray[1] = "";
-    relatedArray[2] = "";
 
     auto temp = request.getParameterValues("related");
 
@@ -123,10 +120,10 @@ void ForumListPosts::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     QString str_order = " ";
     QString quote = "\"";
 
-    if (since_id != "")
+    if (since_id != " ")
         str_since = " AND p.date >= " + quote + since_id + quote;
 
-    if (limit != "")
+    if (limit != " ")
         str_limit = " LIMIT " + limit;
     if (order == "asc")
         str_order = " ORDER BY p.date asc";
@@ -165,7 +162,7 @@ void ForumListPosts::handleRequest(const Wt::Http::Request& request, Wt::Http::R
             jsonArray["forum"] = ResultSet_getString(result, 4);
             jsonArray["thread"] = ResultSet_getInt(result, 5);
 
-            if (ResultSet_isnull(result, 6))
+            if (!ResultSet_isnull(result, 6))
                 jsonArray["parent"] = ResultSet_getInt(result, 6);
             else
                 jsonArray["parent"] = QJsonValue::Null;
