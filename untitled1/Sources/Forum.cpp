@@ -362,7 +362,7 @@ void ForumListUsers::handleRequest(const Wt::Http::Request& request, Wt::Http::R
         str_order = " ORDER BY u.name asc ";
     else
         str_order = " ORDER BY u.name desc ";
-    //QString conName = BdWrapper::getConnection();
+
     QString expression;
     expression = "SELECT distinct u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u JOIN Posts p on u.email = p.user WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
 
@@ -392,7 +392,8 @@ void ForumListUsers::handleRequest(const Wt::Http::Request& request, Wt::Http::R
             QJsonObject jsonArray = jsonResponse.object();
             jsonArray["id"] = ResultSet_getInt(result, 1);
             jsonArray["email"] = ResultSet_getString(result, 2);
-            if (ResultSet_isnull(result,3))
+            std::string temp= ResultSet_getString(result, 3); //¯\_(ツ)_/¯
+            if (temp.length() == 0)
 
                 jsonArray["username"] = QJsonValue::Null;
             else
