@@ -61,7 +61,11 @@ CREATE TABLE  Posts (
     isEdited BOOLEAN NOT NULL DEFAULT 0,
     isSpam BOOLEAN NOT NULL DEFAULT 0,
     isDeleted BOOLEAN NOT NULL DEFAULT 0,
-    path VARCHAR(40),
+    Pathlvl1 INT DEFAULT 0,
+    Pathlvl2 INT DEFAULT 0,
+    Pathlvl3 INT DEFAULT 0,
+    Pathlvl4 INT DEFAULT 0,
+    INDEX(Pathlvl1,Pathlvl2,id,Pathlvl3,Pathlvl4),
     FOREIGN KEY (user) REFERENCES Users(email)
     ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (thread_id) REFERENCES Threads(id)

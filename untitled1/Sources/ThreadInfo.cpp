@@ -29,8 +29,6 @@ QJsonObject ThreadInfo::getThreadCreateInfo(int id, bool& isThreadExist)
             auto date = ResultSet_getDateTime(result, 7);
 
             // jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
-            std::cout << "t_month" << date.tm_mon << std::endl;
-            std::cout << "t_day" << date.tm_mday << std::endl;
 
             jsonArray["date"] = Convertor::getTime(date);
 

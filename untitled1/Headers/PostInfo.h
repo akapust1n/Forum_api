@@ -25,12 +25,19 @@
 
 class PostInfo {
 public:
+    struct Path{
+        int Path1 = 0;
+        int Path2 = 0;
+        int Path3 = 0;
+        int Path4 = 0;
+    };
+
     static int countPosts(int thread_id);
     static QJsonObject getFullPostInfo(int id, bool& isPostExist);
     //джва уровня вложенности
     //эта функция в целом ужасна по кода, ПЕРЕПИСАТЬ
     //оно работает
-    static QString getPath(int parent_id);
+    static Path getPath(int parent_id);
 };
 
 #endif // POSTINFO_H

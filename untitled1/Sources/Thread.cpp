@@ -482,7 +482,7 @@ void ThreadUnSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http
     hR.prepareOutput();
     response.setStatus(200);
     response.out() << hR.output;
-    std::cout << hR.output << " output";
+//    std::cout << hR.output << " output";
 }
 
 ThreadList::~ThreadList()
@@ -599,9 +599,9 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     str_order = " " + order;
 
     if (sort == "tree") {
-        str_sort = "ORDER BY  LPAD(path, 1, \"0\") desc, path asc ";
+        str_sort = "ORDER BY Pathlvl1 desc,Pathlvl2 asc , Pathlvl3 asc, Pathlvl4 asc ";
         if (order == "asc") {
-            str_sort = " ORDER BY path asc";
+            str_sort = " ORDER BY Pathlvl1,Pathlvl2, Pathlvl3,Pathlvl4";
         }
         str_order = " ";
     }
@@ -609,57 +609,56 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
 
     if (sort == "parent_tree") {
         if (order == "asc") {
-            QString expression = "SELECT Min(path) FROM Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + ";";
+            QString expression = "SELECT distinct Pathlvl1  from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since +" ORDER BY Pathlvl1 asc " + str_limit+";";
             ResultSet_T result;
             bool ok = true;
             TRY
             {
                 result = Connection_executeQuery(con, expression.toStdString().c_str());
+                int max_value;
                 while (ResultSet_next(result)) {
-                    QString max_value = ResultSet_getString(result, 1);
-                    int max_val = max_value.toInt(0, BASE);
-                    QString tmp = QString::number(max_val + limit.toInt() - 1, BASE);
-
-                    tmp = tmp + "z" + "z" + "z" + "z" + "z";
-                    str_sort = " AND (path <" + quote + tmp + quote + ")";
-                    str_sort += " ORDER BY path ASC";
-                    str_limit = " ";
+                     max_value = ResultSet_getInt(result, 1);
                 }
+
+                str_sort = " AND (Pathlvl1 <=" +QString::number(max_value)+ ")";
+                str_limit = " ";
             }
+
             CATCH(SQLException)
             {
                 ok = false;
-                std::cerr << "smth is wrong";
+                std::cerr << "wrong parent tree error";
             }
             END_TRY;
+            str_order = " ORDER BY Pathlvl1 asc, Pathlvl2 asc, Pathlvl3 asc, Pathlvl4 asc ";
+
         }
 
         if (order == "desc" || order == " ") {
-            //очень грустный момент
-            QString expression = "SELECT Count(path) FROM Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + ";";
+            QString expression = "SELECT distinct Pathlvl1 from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + str_limit+" ORDER BY Pathlvl1 desc;";
             ResultSet_T result;
             bool ok = true;
             TRY
             {
                 result = Connection_executeQuery(con, expression.toStdString().c_str());
+                int max_value;
                 while (ResultSet_next(result)) {
-                    int max_value = ResultSet_getInt(result, 1);
-                    QString tmp = QString::number(max_value - limit.toInt() - 1, BASE);
-
-                    tmp = tmp + "0" + "0" + "0" + "0" + "0";
-                    str_sort = " AND (path >" + quote + tmp + quote + ")";
-                    str_sort += " order by path desc";
-                    str_limit = " ";
+                     max_value = ResultSet_getInt(result, 1);
                 }
+
+                str_sort = " AND (Pathlvl1 >=" +QString::number(max_value)+ ")";
+                str_limit = " ";
             }
+
             CATCH(SQLException)
             {
                 ok = false;
                 std::cerr << "smth is wrong";
             }
             END_TRY;
+            str_order = " ORDER BY Pathlvl1 desc, Pathlvl2 asc, Pathlvl3 asc, Pathlvl4 asc ";
+
         }
-        str_order = " ";
     }
     bool ok = true;
     QString expression;
@@ -671,7 +670,11 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     ResultSet_T result;
     TRY
     {
+
         result = Connection_executeQuery(con, expression.toStdString().c_str());
+        if(sort == "parent_tree")
+            std::cout<<" error "<<Connection_getLastError(con);
+
         while (ResultSet_next(result)) {
             int id = ResultSet_getInt(result, 4);
             QJsonObject jsonObj = PostInfo::getFullPostInfo(id, isPostExist); // assume this has been populated with Json data
@@ -681,7 +684,7 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "ListPost errpr";
     }
     END_TRY;
     Connection_close(con);

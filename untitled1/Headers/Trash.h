@@ -20,8 +20,6 @@ public:
         result.append(QString::number(time.tm_year));
         result.append("-");
         result.append(doubleNumber(time.tm_mon+1)); //почему +1? Потому что месяца тут 0-11, а надо 1-12
-        std::cout<<"months"<<time.tm_mon<<std::endl;
-        std::cout<<"days"<<time.tm_mday<<std::endl;
         result.append("-");
         result.append(doubleNumber(time.tm_mday));
         result.append(" ");

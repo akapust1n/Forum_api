@@ -1,4 +1,5 @@
 #include "PostInfo.h"
+#include <QMutex>
 #include <zdb/zdb.h>
 
 extern ConnectionPool_T pool;
@@ -41,34 +42,33 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
     {
         result = PreparedStatement_executeQuery(p);
         isPostExist = false;
-        while (ResultSet_next(result)){
-        jsonArray["id"] = ResultSet_getInt(result, 1);
-        jsonArray["user"] = ResultSet_getString(result, 2);
-        jsonArray["message"] = ResultSet_getString(result, 3);
-        jsonArray["forum"] = ResultSet_getString(result, 4);
-        jsonArray["thread"] = ResultSet_getInt(result, 5);
+        while (ResultSet_next(result)) {
+            jsonArray["id"] = ResultSet_getInt(result, 1);
+            jsonArray["user"] = ResultSet_getString(result, 2);
+            jsonArray["message"] = ResultSet_getString(result, 3);
+            jsonArray["forum"] = ResultSet_getString(result, 4);
+            jsonArray["thread"] = ResultSet_getInt(result, 5);
 
-        if (!ResultSet_isnull(result, 6))
-            jsonArray["parent"] = ResultSet_getInt(result, 6);
-        else
-            jsonArray["parent"] = QJsonValue::Null;
+            if (!ResultSet_isnull(result, 6))
+                jsonArray["parent"] = ResultSet_getInt(result, 6);
+            else
+                jsonArray["parent"] = QJsonValue::Null;
 
-        auto date = ResultSet_getDateTime(result, 7);
+            auto date = ResultSet_getDateTime(result, 7);
 
-        // jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
-        jsonArray["date"] = Convertor::getTime(date);
+            // jsonArray["date"] = query.value(6).toDateTime().toString("yyyy-MM-dd hh:mm:ss");
+            jsonArray["date"] = Convertor::getTime(date);
 
-        jsonArray["likes"] = ResultSet_getInt(result, 8);
-        jsonArray["dislikes"] = ResultSet_getInt(result, 9);
-        jsonArray["isApproved"] = ResultSet_getInt(result, 10);
-        jsonArray["isHighlighted"] = ResultSet_getInt(result, 11);
-        jsonArray["isEdited"] = ResultSet_getInt(result, 12);
-        jsonArray["isSpam"] = ResultSet_getInt(result, 13);
-        jsonArray["isDeleted"] = ResultSet_getInt(result, 14);
-        jsonArray["points"] = ResultSet_getInt(result, 8) - ResultSet_getInt(result, 9);
-        isPostExist = true;
-
-}
+            jsonArray["likes"] = ResultSet_getInt(result, 8);
+            jsonArray["dislikes"] = ResultSet_getInt(result, 9);
+            jsonArray["isApproved"] = ResultSet_getInt(result, 10);
+            jsonArray["isHighlighted"] = ResultSet_getInt(result, 11);
+            jsonArray["isEdited"] = ResultSet_getInt(result, 12);
+            jsonArray["isSpam"] = ResultSet_getInt(result, 13);
+            jsonArray["isDeleted"] = ResultSet_getInt(result, 14);
+            jsonArray["points"] = ResultSet_getInt(result, 8) - ResultSet_getInt(result, 9);
+            isPostExist = true;
+        }
     }
     CATCH(SQLException)
     {
@@ -82,14 +82,19 @@ QJsonObject PostInfo::getFullPostInfo(int id, bool& isPostExist)
     return jsonArray;
 }
 
-QString PostInfo::getPath(int parent_id)
+PostInfo::Path PostInfo::getPath(int parent_id)
 {
     QString result;
-    QString path;
+    static int basePath = 1;
+    if(basePath>1000000)
+        basePath = 1;
+    Path paths;
+    static QMutex m_mutex;
+    Connection_T con = ConnectionPool_getConnection(pool);
+
     if (parent_id != -1) {
-        Connection_T con = ConnectionPool_getConnection(pool);
         PreparedStatement_T p = Connection_prepareStatement(con,
-            "SELECT path,parent FROM Posts WHERE id = ? order by path;");
+            "SELECT Pathlvl1,Pathlvl2,Pathlvl3,Pathlvl4 FROM Posts WHERE id = ? ");
         PreparedStatement_setInt(p, 1, parent_id);
         ResultSet_T _result;
 
@@ -97,66 +102,61 @@ QString PostInfo::getPath(int parent_id)
         {
             _result = PreparedStatement_executeQuery(p);
             while (ResultSet_next(_result)) {
-                path = ResultSet_getString(_result, 1);
+                paths.Path1 = ResultSet_getInt(_result, 1);
+                paths.Path2 = ResultSet_getInt(_result, 2);
+                paths.Path3 = ResultSet_getInt(_result, 3);
+                paths.Path4 = ResultSet_getInt(_result, 4);
             }
+
+            if (paths.Path2 == 0){
+                PreparedStatement_T p1 = Connection_prepareStatement(con,
+                    "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ?");
+                PreparedStatement_setInt(p1, 1, paths.Path1);
+                ResultSet_T _result;
+                _result = PreparedStatement_executeQuery(p1);
+                 while (ResultSet_next(_result)) {
+                     paths.Path2 =  ResultSet_getInt(_result, 1);
+                 }
+            }
+            else if (paths.Path3 == 0)
+            {
+                            PreparedStatement_T p1 = Connection_prepareStatement(con,
+                                "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ? and Pathlvl2 = ? ");
+                            PreparedStatement_setInt(p1, 1, paths.Path1);
+                            PreparedStatement_setInt(p1, 2, paths.Path2);
+                            ResultSet_T _result;
+                            _result = PreparedStatement_executeQuery(p1);
+                             while (ResultSet_next(_result)) {
+                                 paths.Path3 =  ResultSet_getInt(_result, 1);
+                             }
+                        }
+            else if(paths.Path4 ==0 )  {
+                PreparedStatement_T p1 = Connection_prepareStatement(con,
+                    "SELECT COUNT(*) from Posts WHERE Pathlvl11 = ? and Pathlvl2 = ? and Pathlvl3 = ?");
+                PreparedStatement_setInt(p1, 1, paths.Path1);
+                PreparedStatement_setInt(p1, 2, paths.Path2);
+                PreparedStatement_setInt(p1, 3, paths.Path3);
+                ResultSet_T _result;
+                _result = PreparedStatement_executeQuery(p1);
+                 while (ResultSet_next(_result)) {
+                     paths.Path4 =  ResultSet_getInt(_result, 1);
+                 }
+            }
+
         }
         CATCH(SQLException)
         {
             std::cerr << "smth is wrong";
         }
         END_TRY;
-    Connection_close(con);
 
-    } else
-        path = " ";
-
-    if (path != " ") {
-        Connection_T con = ConnectionPool_getConnection(pool);
-        PreparedStatement_T p = Connection_prepareStatement(con,
-            "SELECT Count(path) FROM Posts WHERE (path LIKE ?) order by path ;");
-        std::string st = path.toStdString() + "_";
-        PreparedStatement_setString(p, 1, st.c_str());
-        ResultSet_T _result;
-
-        TRY
-        {
-            _result = PreparedStatement_executeQuery(p);
-            while (ResultSet_next(_result)) {
-                QString temp = ResultSet_getString(_result, 1);
-                int value = temp.toInt(0, BASE) + 1;
-                result = path + QString::number(value, BASE);
-            }
-        }
-        CATCH(SQLException)
-        {
-            std::cerr << "smth is wrong";
-        }
-        END_TRY;
-    Connection_close(con);
+    } else {
+        QMutexLocker locker(&m_mutex);
+        paths.Path1 = basePath;
+        basePath++;
     }
 
-    else {
-        Connection_T con = ConnectionPool_getConnection(pool);
-        PreparedStatement_T p = Connection_prepareStatement(con,
-            "SELECT Count(path) FROM Posts WHERE (path REGEXP \"^.$\") order by path ;");
-        ResultSet_T _result;
-
-        TRY
-        {
-            _result = PreparedStatement_executeQuery(p);
-            while (ResultSet_next(_result)) {
-                QString temp = QString::number(ResultSet_getInt(_result,1), BASE);
-                int value = temp.toInt(0, BASE) + 1;
-                result = QString::number(value, BASE);
-            }
-        }
-        CATCH(SQLException)
-        {
-            std::cerr << "smth is wrong";
-        }
-        END_TRY;
     Connection_close(con);
-    }
 
-    return result;
+    return paths;
 }

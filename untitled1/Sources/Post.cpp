@@ -28,14 +28,12 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     if (hR.objectRequest["isSpam"] == "")
         hR.objectRequest["isSpam"] = false;
-    QString path;
-    if (hR.objectRequest["parent"] == QJsonValue::Null)
-        path = "";
+   PostInfo::Path path;
     Connection_T con = ConnectionPool_getConnection(pool);
     Connection_beginTransaction(con);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+        "INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, Pathlvl1,Pathlvl2,Pathlvl3,Pathlvl4) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?);");
 
     const std::string date = hR.objectRequest["date"].toString().toStdString();
     PreparedStatement_setString(p, 1, date.c_str());
@@ -66,9 +64,12 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     PreparedStatement_setInt(p, 10, hR.objectRequest["isSpam"].toBool());
     PreparedStatement_setInt(p, 11, hR.objectRequest["isDeleted"].toBool());
 
-    const std::string _path = path.toStdString();
+    PostInfo::Path _path = path;
 
-    PreparedStatement_setString(p, 12, _path.c_str());
+    PreparedStatement_setInt(p, 12, _path.Path1);
+    PreparedStatement_setInt(p, 13, _path.Path2);
+    PreparedStatement_setInt(p, 14, _path.Path3);
+    PreparedStatement_setInt(p, 15, _path.Path4);
 
     hR.handleResponse();
     int lastInsertID = 0;
@@ -102,7 +103,6 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     response.out() << hR.output;
 
-    // std::cout << hR.output << "Tat";
 }
 
 PostDetails::~PostDetails()
