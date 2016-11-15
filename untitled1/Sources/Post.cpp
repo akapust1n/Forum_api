@@ -28,7 +28,7 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     if (hR.objectRequest["isSpam"] == "")
         hR.objectRequest["isSpam"] = false;
-   PostInfo::Path path;
+    PostInfo::Path path;
     Connection_T con = ConnectionPool_getConnection(pool);
     Connection_beginTransaction(con);
     bool ok = true;
