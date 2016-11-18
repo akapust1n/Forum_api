@@ -1,5 +1,7 @@
 #include "Thread.h"
 #include <zdb/zdb.h>
+#include "UserInfo.h"
+#include "ForumInfo.h"
 
 extern ConnectionPool_T pool;
 
@@ -16,7 +18,7 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         hR.objectRequest["isDeleted"] = false;
     Connection_T con = ConnectionPool_getConnection(pool);
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted, forum_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)");
 
     const std::string forum = hR.objectRequest["forum"].toString().toStdString();
     PreparedStatement_setString(p, 1, forum.c_str());
@@ -39,6 +41,11 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     PreparedStatement_setString(p, 7, slug.c_str());
 
     PreparedStatement_setInt(p, 8, hR.objectRequest["isDeleted"].toBool());
+
+    int user_id = UserInfo::getUserID(user);
+    PreparedStatement_setInt(p, 9, user_id);
+    int forum_id = ForumInfo::getForumID(forum);
+    PreparedStatement_setInt(p, 10, forum_id);
     bool ok = true;
 
     hR.handleResponse();

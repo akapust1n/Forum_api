@@ -27,6 +27,7 @@ class ForumInfo {
 public:
     static QJsonObject getForumCreateInfo(QString name, bool& isForumExist);
     static QJsonObject getFullForumInfo(QString name, bool& isForumExist);
+    static int getForumID(const std::string forum);
 };
 
 #endif // FORUMINFO_H

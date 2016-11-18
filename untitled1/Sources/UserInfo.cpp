@@ -207,3 +207,29 @@ QJsonObject UserInfo::getFullUserInfo(QString email, bool& isUserExist)
     }
     return jsonArray;
 }
+
+int UserInfo::getUserID(std::__cxx11::string user)
+{
+
+    Connection_T con = ConnectionPool_getConnection(pool);
+    PreparedStatement_T p = Connection_prepareStatement(con,
+        "SELECT id from Users WHERE email=?");
+    const std::string _user= user;
+    int id = 0;
+    PreparedStatement_setString(p, 1, _user.c_str());
+    TRY
+    {
+        ResultSet_T result;
+         result = PreparedStatement_executeQuery(p);
+
+        while (ResultSet_next(result))
+            id = ResultSet_getInt(result, 1);
+    }
+    CATCH(SQLException)
+    {
+        std::cerr << "getUserID ERROR";
+    }
+    END_TRY;
+    return id;
+
+}

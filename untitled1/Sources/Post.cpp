@@ -33,7 +33,7 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     Connection_beginTransaction(con);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, Pathlvl1,Pathlvl2,Pathlvl3,Pathlvl4) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?);");
+        "INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, Pathlvl1,Pathlvl2,Pathlvl3,Pathlvl4, user_id, forum_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?);");
 
     const std::string date = hR.objectRequest["date"].toString().toStdString();
     PreparedStatement_setString(p, 1, date.c_str());
@@ -70,6 +70,10 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     PreparedStatement_setInt(p, 13, _path.Path2);
     PreparedStatement_setInt(p, 14, _path.Path3);
     PreparedStatement_setInt(p, 15, _path.Path4);
+    int user_id = UserInfo::getUserID(user);
+    PreparedStatement_setInt(p, 16, user_id);
+    int forum_id = ForumInfo::getForumID(forum);
+    PreparedStatement_setInt(p, 17, forum_id);
 
     hR.handleResponse();
     int lastInsertID = 0;
@@ -91,9 +95,6 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     hR.objectResponce["code"] = ok ? 0 : 4;
     bool isThreadExist = true;
-    auto tt = Connection_lastRowId(con);
-    auto tt1 = Connection_rowsChanged(con);
-    auto tt2 = PreparedStatement_rowsChanged(p);
     hR.objectResponce["response"] = PostInfo::getFullPostInfo(lastInsertID, isThreadExist);
 
     Connection_close(con);
@@ -102,7 +103,6 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     response.setStatus(200);
 
     response.out() << hR.output;
-
 }
 
 PostDetails::~PostDetails()

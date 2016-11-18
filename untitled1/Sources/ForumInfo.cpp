@@ -75,3 +75,27 @@ QJsonObject ForumInfo::getFullForumInfo(QString name, bool& isForumExist)
     Connection_close(con);
     return jsonArray;
 }
+
+int ForumInfo::getForumID(const std::__cxx11::string forum)
+{
+    Connection_T con = ConnectionPool_getConnection(pool);
+    PreparedStatement_T p = Connection_prepareStatement(con,
+        "SELECT id from Forums WHERE short_name=?");
+    const std::string _forum = forum;
+    int id = 0;
+    PreparedStatement_setString(p, 1, _forum.c_str());
+    TRY
+    {
+        ResultSet_T result;
+         result = PreparedStatement_executeQuery(p);
+
+        while (ResultSet_next(result))
+            id = ResultSet_getInt(result, 1);
+    }
+    CATCH(SQLException)
+    {
+        std::cerr << "getForumID ERROR";
+    }
+    END_TRY;
+    return id;
+}

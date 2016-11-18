@@ -46,6 +46,7 @@ class UserInfo {
 public:
     static QJsonObject getUserInfo(QString email, bool& isUserExist);
     static QJsonObject getFullUserInfo(QString email, bool& isUserExist);
+    static int getUserID(std::string user);
 };
 
 #endif // USERINFO_H

@@ -94,11 +94,17 @@ void UserFollow::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     hR.handleResponse();
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
-    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Followers (follower, followee) VALUES (?, ?);");
+    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Followers (follower, followee,follower_id,followee_id) VALUES (?, ?,?,?);");
     const std::string follower = hR.objectRequest["follower"].toString().toStdString();
     PreparedStatement_setString(p, 1, follower.c_str());
     const std::string followee = hR.objectRequest["followee"].toString().toStdString();
     PreparedStatement_setString(p, 2, followee.c_str());
+
+    int user_id1 = UserInfo::getUserID(follower);
+    PreparedStatement_setInt(p, 3, user_id1);
+
+    int user_id2 = UserInfo::getUserID(followee);
+    PreparedStatement_setInt(p, 4, user_id2);
     TRY
     {
         PreparedStatement_execute(p);

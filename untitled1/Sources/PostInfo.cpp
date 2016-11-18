@@ -132,7 +132,7 @@ PostInfo::Path PostInfo::getPath(int parent_id)
                         }
             else if(paths.Path4 ==0 )  {
                 PreparedStatement_T p1 = Connection_prepareStatement(con,
-                    "SELECT COUNT(*) from Posts WHERE Pathlvl11 = ? and Pathlvl2 = ? and Pathlvl3 = ?");
+                    "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ? and Pathlvl2 = ? and Pathlvl3 = ?");
                 PreparedStatement_setInt(p1, 1, paths.Path1);
                 PreparedStatement_setInt(p1, 2, paths.Path2);
                 PreparedStatement_setInt(p1, 3, paths.Path3);
