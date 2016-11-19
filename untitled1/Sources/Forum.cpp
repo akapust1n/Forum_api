@@ -366,7 +366,7 @@ void ForumListUsers::handleRequest(const Wt::Http::Request& request, Wt::Http::R
         str_order = " ORDER BY u.name desc ";
 
     QString expression;
-    expression = "SELECT STRAIGHT_JOIN u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u  join Posts p on u.id=p.user_id  WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
+    expression = "SELECT  distinct u.id, u.email,u.username, u.about, u.name, u.isAnonymous FROM Users u left join Posts p on u.id=p.user_id  WHERE p.forum=" + quote + forum + quote + str_since + str_order + str_limit + ";";
 
     Connection_T con = ConnectionPool_getConnection(pool);
     bool ok = true;
