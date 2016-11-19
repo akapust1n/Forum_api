@@ -244,7 +244,7 @@ void ThreadRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     {
         Connection_rollback(con);
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "ThreadRemove error";
     }
     END_TRY;
     p = Connection_prepareStatement(con, "UPDATE Posts SET isDeleted=true WHERE thread_id=?;");
@@ -259,7 +259,7 @@ void ThreadRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     {
         Connection_rollback(con);
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "ThreadRemove error";
     }
     END_TRY;
     Connection_close(con);

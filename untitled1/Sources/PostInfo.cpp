@@ -7,15 +7,19 @@ extern ConnectionPool_T pool;
 int PostInfo::countPosts(int thread_id)
 {
     Connection_T con = ConnectionPool_getConnection(pool);
-    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT COUNT(*) FROM Posts WHERE thread_id=? AND isDeleted=false");
+    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT posts,isDeleted FROM Threads WHERE id=?");
     PreparedStatement_setInt(p, 1, thread_id);
     ResultSet_T _result;
     int result;
+    int isDeleted = 0;
     TRY
     {
         _result = PreparedStatement_executeQuery(p);
         while (ResultSet_next(_result)) {
             result = ResultSet_getInt(_result, 1);
+            isDeleted = ResultSet_getInt(_result, 2);
+            if (isDeleted)
+                result = 0;
         }
     }
     CATCH(SQLException)
@@ -86,7 +90,7 @@ PostInfo::Path PostInfo::getPath(int parent_id)
 {
     QString result;
     static int basePath = 1;
-    if(basePath>1000000)
+    if (basePath > 1000000)
         basePath = 1;
     Path paths;
     static QMutex m_mutex;
@@ -108,29 +112,26 @@ PostInfo::Path PostInfo::getPath(int parent_id)
                 paths.Path4 = ResultSet_getInt(_result, 4);
             }
 
-            if (paths.Path2 == 0){
+            if (paths.Path2 == 0) {
                 PreparedStatement_T p1 = Connection_prepareStatement(con,
                     "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ?");
                 PreparedStatement_setInt(p1, 1, paths.Path1);
                 ResultSet_T _result;
                 _result = PreparedStatement_executeQuery(p1);
-                 while (ResultSet_next(_result)) {
-                     paths.Path2 =  ResultSet_getInt(_result, 1);
-                 }
-            }
-            else if (paths.Path3 == 0)
-            {
-                            PreparedStatement_T p1 = Connection_prepareStatement(con,
-                                "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ? and Pathlvl2 = ? ");
-                            PreparedStatement_setInt(p1, 1, paths.Path1);
-                            PreparedStatement_setInt(p1, 2, paths.Path2);
-                            ResultSet_T _result;
-                            _result = PreparedStatement_executeQuery(p1);
-                             while (ResultSet_next(_result)) {
-                                 paths.Path3 =  ResultSet_getInt(_result, 1);
-                             }
-                        }
-            else if(paths.Path4 ==0 )  {
+                while (ResultSet_next(_result)) {
+                    paths.Path2 = ResultSet_getInt(_result, 1);
+                }
+            } else if (paths.Path3 == 0) {
+                PreparedStatement_T p1 = Connection_prepareStatement(con,
+                    "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ? and Pathlvl2 = ? ");
+                PreparedStatement_setInt(p1, 1, paths.Path1);
+                PreparedStatement_setInt(p1, 2, paths.Path2);
+                ResultSet_T _result;
+                _result = PreparedStatement_executeQuery(p1);
+                while (ResultSet_next(_result)) {
+                    paths.Path3 = ResultSet_getInt(_result, 1);
+                }
+            } else if (paths.Path4 == 0) {
                 PreparedStatement_T p1 = Connection_prepareStatement(con,
                     "SELECT COUNT(*) from Posts WHERE Pathlvl1 = ? and Pathlvl2 = ? and Pathlvl3 = ?");
                 PreparedStatement_setInt(p1, 1, paths.Path1);
@@ -138,11 +139,10 @@ PostInfo::Path PostInfo::getPath(int parent_id)
                 PreparedStatement_setInt(p1, 3, paths.Path3);
                 ResultSet_T _result;
                 _result = PreparedStatement_executeQuery(p1);
-                 while (ResultSet_next(_result)) {
-                     paths.Path4 =  ResultSet_getInt(_result, 1);
-                 }
+                while (ResultSet_next(_result)) {
+                    paths.Path4 = ResultSet_getInt(_result, 1);
+                }
             }
-
         }
         CATCH(SQLException)
         {
@@ -158,5 +158,4 @@ PostInfo::Path PostInfo::getPath(int parent_id)
     Connection_close(con);
 
     return paths;
-
 }

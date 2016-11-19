@@ -85,6 +85,13 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         result = Connection_executeQuery(con, "SELECT LAST_INSERT_ID()");
         while (ResultSet_next(result))
             lastInsertID = ResultSet_getInt(result, 1);
+
+        //update count of Posts
+        PreparedStatement_T p1 = Connection_prepareStatement(con,"UPDATE Threads SET posts = posts + 1 WHERE id = ?");
+         PreparedStatement_setInt(p1, 1, hR.objectRequest["thread"].toInt());
+         PreparedStatement_execute(p1);
+
+
         Connection_commit(con);
     }
     CATCH(SQLException)
@@ -177,12 +184,19 @@ void PostRemove::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     PreparedStatement_T p = Connection_prepareStatement(con,
         "UPDATE Posts SET isDeleted=true WHERE id=?");
     PreparedStatement_setInt(p, 1, hR.objectRequest["post"].toInt());
+    PreparedStatement_T p1 = Connection_prepareStatement(con,
+        "UPDATE Threads SET posts = posts - 1 WHERE id = (SELECT thread_id FROM Posts WHERE id = ?)");
+    PreparedStatement_setInt(p1, 1, hR.objectRequest["post"].toInt());
+    Connection_beginTransaction(con);
     TRY
     {
         PreparedStatement_execute(p);
+        PreparedStatement_execute(p1);
+        Connection_commit(con);
     }
     CATCH(SQLException)
     {
+        Connection_rollback(con);
         ok = false;
         std::cerr << "smth is wrong";
     }
@@ -215,14 +229,22 @@ void PostRestore::handleRequest(const Wt::Http::Request& request, Wt::Http::Resp
     PreparedStatement_T p = Connection_prepareStatement(con,
         "UPDATE Posts SET isDeleted=false WHERE id=?");
     PreparedStatement_setInt(p, 1, hR.objectRequest["post"].toInt());
+    PreparedStatement_T p1 = Connection_prepareStatement(con,
+        "UPDATE Threads SET posts = posts + 1 WHERE id = (SELECT thread_id FROM Posts WHERE id = ?)");
+    PreparedStatement_setInt(p1, 1, hR.objectRequest["post"].toInt());
+    Connection_beginTransaction(con);
+
     TRY
     {
         PreparedStatement_execute(p);
+        PreparedStatement_execute(p1);
+        Connection_commit(con);
     }
     CATCH(SQLException)
     {
+        Connection_rollback(con);
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "PostRestore error";
     }
     END_TRY;
     Connection_close(con);

@@ -56,7 +56,7 @@ QJsonObject ThreadInfo::getFullThreadInfo(int id, bool& isThreadExist)
     QJsonDocument jsonResponse = QJsonDocument::fromJson(strGoodReply.toUtf8());
     QJsonObject jsonArray = jsonResponse.object();
     Connection_T con = ConnectionPool_getConnection(pool);
-    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted FROM Threads WHERE id=?");
+    PreparedStatement_T p = Connection_prepareStatement(con, "SELECT id,forum,user,title,slug,message,date,likes,dislikes,isClosed,isDeleted,posts FROM Threads WHERE id=?");
     PreparedStatement_setInt(p, 1, id);
     ResultSet_T result;
 
@@ -83,7 +83,8 @@ QJsonObject ThreadInfo::getFullThreadInfo(int id, bool& isThreadExist)
 
             jsonArray["isDeleted"] = ResultSet_getInt(result, 11);
             jsonArray["points"] = ResultSet_getInt(result, 8) - ResultSet_getInt(result, 9);
-            jsonArray["posts"] = PostInfo::countPosts(id);
+            jsonArray["posts"] = ResultSet_getInt(result, 11) ? 0 : ResultSet_getInt(result, 12);
+            ;
             isThreadExist = true;
         }
     }
