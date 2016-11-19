@@ -155,8 +155,8 @@ PostInfo::Path PostInfo::getPath(int parent_id)
         paths.Path1 = basePath;
         basePath++;
     }
-
     Connection_close(con);
 
     return paths;
+
 }

@@ -70,6 +70,7 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     PreparedStatement_setInt(p, 13, _path.Path2);
     PreparedStatement_setInt(p, 14, _path.Path3);
     PreparedStatement_setInt(p, 15, _path.Path4);
+
     int user_id = UserInfo::getUserID(user);
     PreparedStatement_setInt(p, 16, user_id);
     int forum_id = ForumInfo::getForumID(forum);
@@ -90,6 +91,7 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
     {
         ok = false;
         std::cerr << "POSTCREATE ERROR";
+        std::cerr<<Connection_getLastError(con);
     }
     END_TRY;
 

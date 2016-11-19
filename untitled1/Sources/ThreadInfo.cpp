@@ -42,7 +42,7 @@ QJsonObject ThreadInfo::getThreadCreateInfo(int id, bool& isThreadExist)
     {
         isThreadExist = false;
 
-        std::cerr << "THREAD DOESNT CREATE";
+        std::cerr << "THREAD DOESNT CREATE error";
     }
     END_TRY;
     Connection_close(con);

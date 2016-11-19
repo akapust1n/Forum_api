@@ -97,5 +97,6 @@ int ForumInfo::getForumID(const std::__cxx11::string forum)
         std::cerr << "getForumID ERROR";
     }
     END_TRY;
+    Connection_close(con);
     return id;
 }

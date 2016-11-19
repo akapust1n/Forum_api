@@ -1,7 +1,7 @@
 #include "Thread.h"
-#include <zdb/zdb.h>
-#include "UserInfo.h"
 #include "ForumInfo.h"
+#include "UserInfo.h"
+#include <zdb/zdb.h>
 
 extern ConnectionPool_T pool;
 
@@ -18,7 +18,7 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         hR.objectRequest["isDeleted"] = false;
     Connection_T con = ConnectionPool_getConnection(pool);
     PreparedStatement_T p = Connection_prepareStatement(con,
-        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted, forum_id, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)");
+        "INSERT INTO Threads (forum, title, isClosed, user, date, message, slug, isDeleted, user_id, forum_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)");
 
     const std::string forum = hR.objectRequest["forum"].toString().toStdString();
     PreparedStatement_setString(p, 1, forum.c_str());
@@ -47,7 +47,7 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     int forum_id = ForumInfo::getForumID(forum);
     PreparedStatement_setInt(p, 10, forum_id);
     bool ok = true;
-
+    Connection_beginTransaction(con);
     hR.handleResponse();
     TRY
     {
@@ -56,7 +56,7 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "THREAD DOESNT CREATE";
+        std::cerr << "THREAD DOESNT CREATE error";
     }
     END_TRY;
 
@@ -67,15 +67,16 @@ void ThreadCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Res
         int lastId;
         TRY
         {
-            result = Connection_executeQuery(con, "Select count(*) from Threads");
+            result = Connection_executeQuery(con, "SELECT LAST_INSERT_ID()");
             while (ResultSet_next(result)) {
                 lastId = ResultSet_getInt(result, 1);
             }
+            Connection_commit(con);
         }
         CATCH(SQLException)
         {
             ok = false;
-            std::cerr << "smth is  wrong";
+            std::cerr << "SELECT LAST THREAD ID  error";
         }
         END_TRY;
         hR.objectResponce["response"] = ThreadInfo::getThreadCreateInfo(lastId, isThreadExist);
@@ -421,10 +422,12 @@ void ThreadSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http::
     hR.handleResponse();
     Connection_T con = ConnectionPool_getConnection(pool);
 
-    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Subscribers (user, thread_id) VALUES (?, ?);");
+    PreparedStatement_T p = Connection_prepareStatement(con, "INSERT INTO Subscribers (user, thread_id, user_id) VALUES (?, ?,?);");
     const std::string user = hR.objectRequest["user"].toString().toStdString();
     PreparedStatement_setString(p, 1, user.c_str());
     PreparedStatement_setInt(p, 2, hR.objectRequest["thread"].toInt());
+    int user_id = UserInfo::getUserID(user);
+    PreparedStatement_setInt(p, 3, user_id);
 
     bool ok = true;
     TRY
@@ -434,7 +437,7 @@ void ThreadSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http::
     CATCH(SQLException)
     {
         ok = false;
-        std::cerr << "smth is wrong";
+        std::cerr << "ThreadSubscribe error";
     }
     END_TRY;
     Connection_close(con);
@@ -489,7 +492,6 @@ void ThreadUnSubscribe::handleRequest(const Wt::Http::Request& request, Wt::Http
     hR.prepareOutput();
     response.setStatus(200);
     response.out() << hR.output;
-//    std::cout << hR.output << " output";
 }
 
 ThreadList::~ThreadList()
@@ -616,7 +618,7 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
 
     if (sort == "parent_tree") {
         if (order == "asc") {
-            QString expression = "SELECT distinct Pathlvl1  from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since +" ORDER BY Pathlvl1 asc " + str_limit+";";
+            QString expression = "SELECT distinct Pathlvl1  from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + " ORDER BY Pathlvl1 asc " + str_limit + ";";
             ResultSet_T result;
             bool ok = true;
             TRY
@@ -624,10 +626,10 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 result = Connection_executeQuery(con, expression.toStdString().c_str());
                 int max_value;
                 while (ResultSet_next(result)) {
-                     max_value = ResultSet_getInt(result, 1);
+                    max_value = ResultSet_getInt(result, 1);
                 }
 
-                str_sort = " AND (Pathlvl1 <=" +QString::number(max_value)+ ")";
+                str_sort = " AND (Pathlvl1 <=" + QString::number(max_value) + ")";
                 str_limit = " ";
             }
 
@@ -638,11 +640,10 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
             }
             END_TRY;
             str_order = " ORDER BY Pathlvl1 asc, Pathlvl2 asc, Pathlvl3 asc, Pathlvl4 asc ";
-
         }
 
         if (order == "desc" || order == " ") {
-            QString expression = "SELECT distinct Pathlvl1 from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + str_limit+" ORDER BY Pathlvl1 desc;";
+            QString expression = "SELECT distinct Pathlvl1 from Posts p WHERE p.thread_id=" + quote + thread + quote + str_since + str_limit + " ORDER BY Pathlvl1 desc;";
             ResultSet_T result;
             bool ok = true;
             TRY
@@ -650,10 +651,10 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
                 result = Connection_executeQuery(con, expression.toStdString().c_str());
                 int max_value;
                 while (ResultSet_next(result)) {
-                     max_value = ResultSet_getInt(result, 1);
+                    max_value = ResultSet_getInt(result, 1);
                 }
 
-                str_sort = " AND (Pathlvl1 >=" +QString::number(max_value)+ ")";
+                str_sort = " AND (Pathlvl1 >=" + QString::number(max_value) + ")";
                 str_limit = " ";
             }
 
@@ -664,7 +665,6 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
             }
             END_TRY;
             str_order = " ORDER BY Pathlvl1 desc, Pathlvl2 asc, Pathlvl3 asc, Pathlvl4 asc ";
-
         }
     }
     bool ok = true;
@@ -679,8 +679,6 @@ void ThreadListPost::handleRequest(const Wt::Http::Request& request, Wt::Http::R
     {
 
         result = Connection_executeQuery(con, expression.toStdString().c_str());
-        if(sort == "parent_tree")
-            std::cout<<" error "<<Connection_getLastError(con);
 
         while (ResultSet_next(result)) {
             int id = ResultSet_getInt(result, 4);

@@ -230,6 +230,8 @@ int UserInfo::getUserID(std::__cxx11::string user)
         std::cerr << "getUserID ERROR";
     }
     END_TRY;
+    Connection_close(con);
+
     return id;
 
 }
