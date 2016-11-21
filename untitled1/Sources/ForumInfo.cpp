@@ -76,7 +76,7 @@ QJsonObject ForumInfo::getFullForumInfo(QString name, bool& isForumExist)
     return jsonArray;
 }
 
-int ForumInfo::getForumID(const std::__cxx11::string forum)
+int ForumInfo::getForumID(const std::string forum)
 {
     Connection_T con = ConnectionPool_getConnection(pool);
     PreparedStatement_T p = Connection_prepareStatement(con,
