@@ -13,7 +13,9 @@ username VARCHAR(50),
 about TEXT, 
 name VARCHAR(50), 
 isAnonymous BOOLEAN NOT NULL DEFAULT 0, 
-UNIQUE KEY(email) 
+UNIQUE KEY(email),
+INDEX ind1(name),
+INDEX ind2(id,name)
 ) ENGINE = INNODB DEFAULT CHARSET=utf8; 
 
 CREATE TABLE Forums ( 

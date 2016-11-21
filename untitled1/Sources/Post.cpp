@@ -30,7 +30,6 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         hR.objectRequest["isSpam"] = false;
     PostInfo::Path path;
     Connection_T con = ConnectionPool_getConnection(pool);
-    Connection_beginTransaction(con);
     bool ok = true;
     PreparedStatement_T p = Connection_prepareStatement(con,
         "INSERT INTO Posts (date, thread_id, message, user, forum, parent, isApproved, isHighlighted, isEdited, isSpam, isDeleted, Pathlvl1,Pathlvl2,Pathlvl3,Pathlvl4, user_id, forum_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?);");
@@ -78,6 +77,8 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
 
     hR.handleResponse();
     int lastInsertID = 0;
+    Connection_beginTransaction(con);
+
     TRY
     {
         PreparedStatement_execute(p);
@@ -85,20 +86,20 @@ void PostCreate::handleRequest(const Wt::Http::Request& request, Wt::Http::Respo
         result = Connection_executeQuery(con, "SELECT LAST_INSERT_ID()");
         while (ResultSet_next(result))
             lastInsertID = ResultSet_getInt(result, 1);
-
+        Connection_commit(con);
         //update count of Posts
-        PreparedStatement_T p1 = Connection_prepareStatement(con,"UPDATE Threads SET posts = posts + 1 WHERE id = ?");
-         PreparedStatement_setInt(p1, 1, hR.objectRequest["thread"].toInt());
-         PreparedStatement_execute(p1);
-
+        if(!hR.objectRequest["isDeleted"].toBool()){
+        PreparedStatement_T p1 = Connection_prepareStatement(con, "UPDATE Threads SET posts = posts + 1 WHERE id = ?");
+        PreparedStatement_setInt(p1, 1, hR.objectRequest["thread"].toInt());
+        PreparedStatement_execute(p1);
 
         Connection_commit(con);
+        }
     }
     CATCH(SQLException)
     {
         ok = false;
         std::cerr << "POSTCREATE ERROR";
-        std::cerr<<Connection_getLastError(con);
     }
     END_TRY;
 
