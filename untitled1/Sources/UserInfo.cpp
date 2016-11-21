@@ -208,7 +208,7 @@ QJsonObject UserInfo::getFullUserInfo(QString email, bool& isUserExist)
     return jsonArray;
 }
 
-int UserInfo::getUserID(std::__cxx11::string user)
+int UserInfo::getUserID(std::string user)
 {
 
     Connection_T con = ConnectionPool_getConnection(pool);
